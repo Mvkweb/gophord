@@ -111,6 +111,46 @@ func (c *Client) GetMessage(ctx context.Context, channelID, messageID types.Snow
 	return &message, nil
 }
 
+// GetMessagesParams contains query parameters for GetMessages.
+type GetMessagesParams struct {
+	Around types.Snowflake `json:"around,omitempty"`
+	Before types.Snowflake `json:"before,omitempty"`
+	After  types.Snowflake `json:"after,omitempty"`
+	Limit  int             `json:"limit,omitempty"`
+}
+
+// GetMessages returns a list of messages in a channel.
+func (c *Client) GetMessages(ctx context.Context, channelID types.Snowflake, params *GetMessagesParams) ([]types.Message, error) {
+	path := fmt.Sprintf("/channels/%s/messages", channelID)
+	query := make(map[string]string)
+	if params != nil {
+		if params.Around != 0 {
+			query["around"] = params.Around.String()
+		}
+		if params.Before != 0 {
+			query["before"] = params.Before.String()
+		}
+		if params.After != 0 {
+			query["after"] = params.After.String()
+		}
+		if params.Limit > 0 {
+			query["limit"] = fmt.Sprintf("%d", params.Limit)
+		}
+	}
+
+	data, err := c.RequestWithQuery(ctx, http.MethodGet, path, nil, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []types.Message
+	if err := json.Unmarshal(data, &messages); err != nil {
+		return nil, fmt.Errorf("unmarshal messages: %w", err)
+	}
+
+	return messages, nil
+}
+
 // EditMessageParams contains parameters for editing a message.
 type EditMessageParams struct {
 	// Content is the new message content.
@@ -148,6 +188,69 @@ func (c *Client) DeleteMessage(ctx context.Context, channelID, messageID types.S
 	path := fmt.Sprintf("/channels/%s/messages/%s", channelID, messageID)
 	_, err := c.Request(ctx, http.MethodDelete, path, nil)
 	return err
+}
+
+// BulkDeleteMessages deletes multiple messages at once.
+func (c *Client) BulkDeleteMessages(ctx context.Context, channelID types.Snowflake, messageIDs []types.Snowflake) error {
+	path := fmt.Sprintf("/channels/%s/messages/bulk-delete", channelID)
+	params := map[string][]types.Snowflake{"messages": messageIDs}
+	_, err := c.Request(ctx, http.MethodPost, path, params)
+	return err
+}
+
+// Reactions
+
+// CreateReaction adds a reaction to a message.
+func (c *Client) CreateReaction(ctx context.Context, channelID, messageID types.Snowflake, emoji string) error {
+	path := fmt.Sprintf("/channels/%s/messages/%s/reactions/%s/@me", channelID, messageID, emoji)
+	_, err := c.Request(ctx, http.MethodPut, path, nil)
+	return err
+}
+
+// DeleteOwnReaction removes the current user's reaction.
+func (c *Client) DeleteOwnReaction(ctx context.Context, channelID, messageID types.Snowflake, emoji string) error {
+	path := fmt.Sprintf("/channels/%s/messages/%s/reactions/%s/@me", channelID, messageID, emoji)
+	_, err := c.Request(ctx, http.MethodDelete, path, nil)
+	return err
+}
+
+// DeleteUserReaction removes another user's reaction.
+func (c *Client) DeleteUserReaction(ctx context.Context, channelID, messageID, userID types.Snowflake, emoji string) error {
+	path := fmt.Sprintf("/channels/%s/messages/%s/reactions/%s/%s", channelID, messageID, emoji, userID)
+	_, err := c.Request(ctx, http.MethodDelete, path, nil)
+	return err
+}
+
+// Pins
+
+// PinMessage pins a message in a channel.
+func (c *Client) PinMessage(ctx context.Context, channelID, messageID types.Snowflake) error {
+	path := fmt.Sprintf("/channels/%s/pins/%s", channelID, messageID)
+	_, err := c.Request(ctx, http.MethodPut, path, nil)
+	return err
+}
+
+// UnpinMessage unpins a message in a channel.
+func (c *Client) UnpinMessage(ctx context.Context, channelID, messageID types.Snowflake) error {
+	path := fmt.Sprintf("/channels/%s/pins/%s", channelID, messageID)
+	_, err := c.Request(ctx, http.MethodDelete, path, nil)
+	return err
+}
+
+// GetChannelPins returns the pinned messages in a channel.
+func (c *Client) GetChannelPins(ctx context.Context, channelID types.Snowflake) ([]types.Message, error) {
+	path := fmt.Sprintf("/channels/%s/pins", channelID)
+	data, err := c.Request(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var messages []types.Message
+	if err := json.Unmarshal(data, &messages); err != nil {
+		return nil, fmt.Errorf("unmarshal pins: %w", err)
+	}
+
+	return messages, nil
 }
 
 // Interactions

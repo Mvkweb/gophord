@@ -173,6 +173,14 @@ func (c *Client) SendMessage(ctx context.Context, channelID types.Snowflake, con
 	})
 }
 
+// SendMessageSilent sends a message without triggering a notification (@silent behavior).
+func (c *Client) SendMessageSilent(ctx context.Context, channelID types.Snowflake, content string) (*types.Message, error) {
+	return c.REST.CreateMessage(ctx, channelID, &rest.CreateMessageParams{
+		Content: content,
+		Flags:   types.MessageFlagSuppressNotifications,
+	})
+}
+
 // SendMessageWithComponents sends a message with components V2.
 func (c *Client) SendMessageWithComponents(ctx context.Context, channelID types.Snowflake, components types.ComponentList) (*types.Message, error) {
 	return c.REST.CreateMessage(ctx, channelID, &rest.CreateMessageParams{
@@ -192,6 +200,17 @@ func (c *Client) RespondWithMessage(ctx context.Context, interaction *types.Inte
 		Type: types.InteractionCallbackTypeChannelMessageWithSource,
 		Data: &types.InteractionCallbackData{
 			Content: content,
+		},
+	})
+}
+
+// RespondWithEphemeral responds to an interaction with an ephemeral message (visible only to the user).
+func (c *Client) RespondWithEphemeral(ctx context.Context, interaction *types.Interaction, content string) error {
+	return c.RespondToInteraction(ctx, interaction, &types.InteractionResponse{
+		Type: types.InteractionCallbackTypeChannelMessageWithSource,
+		Data: &types.InteractionCallbackData{
+			Content: content,
+			Flags:   types.MessageFlagEphemeral,
 		},
 	})
 }
@@ -306,6 +325,28 @@ func (c *Client) ExecuteWebhook(ctx context.Context, webhookID types.Snowflake, 
 		Content: content,
 	})
 	return err
+}
+
+// Reactions & Pins
+
+// React adds an emoji reaction to a message.
+func (c *Client) React(ctx context.Context, channelID, messageID types.Snowflake, emoji string) error {
+	return c.REST.CreateReaction(ctx, channelID, messageID, emoji)
+}
+
+// Unreact removes the bot's emoji reaction from a message.
+func (c *Client) Unreact(ctx context.Context, channelID, messageID types.Snowflake, emoji string) error {
+	return c.REST.DeleteOwnReaction(ctx, channelID, messageID, emoji)
+}
+
+// Pin pins a message in a channel.
+func (c *Client) Pin(ctx context.Context, channelID, messageID types.Snowflake) error {
+	return c.REST.PinMessage(ctx, channelID, messageID)
+}
+
+// Unpin unpins a message in a channel.
+func (c *Client) Unpin(ctx context.Context, channelID, messageID types.Snowflake) error {
+	return c.REST.UnpinMessage(ctx, channelID, messageID)
 }
 
 // ComponentBuilder provides fluent API for building message components.

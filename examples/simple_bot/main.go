@@ -25,6 +25,7 @@ import (
 
 	"github.com/gophord/gophord/pkg/client"
 	"github.com/gophord/gophord/pkg/gateway"
+	"github.com/gophord/gophord/pkg/rest"
 	"github.com/gophord/gophord/pkg/types"
 	godotenv "github.com/joho/godotenv"
 )
@@ -87,10 +88,18 @@ func main() {
 			handleContainer(ctx, bot, event)
 		case command == "!help":
 			handleHelp(ctx, bot, event)
+		case command == "!silent" && len(args) > 1:
+			handleSilent(ctx, bot, event, strings.Join(args[1:], " "))
 		case command == "!kick" && len(args) > 1:
 			handleKick(ctx, bot, event, args[1])
 		case command == "!webhook" && len(args) > 1:
 			handleWebhookDemo(ctx, bot, event, args[1])
+		case command == "!react" && len(args) > 2:
+			handleReact(ctx, bot, event, args[1], args[2])
+		case command == "!pin" && len(args) > 1:
+			handlePin(ctx, bot, event, args[1])
+		case command == "!purge" && len(args) > 1:
+			handlePurge(ctx, bot, event, args[1])
 		}
 	})
 
@@ -99,36 +108,42 @@ func main() {
 		handleInteraction(ctx, bot, &event.Interaction)
 	})
 
-	// Register a slash command
+	// Register slash commands
 	go func() {
 		ctx := context.Background()
-		cmdParams := types.CreateApplicationCommandParams{
-			Name:        "hello",
-			Description: "Get a greeting from gophord",
+		commands := []types.CreateApplicationCommandParams{
+			{
+				Name:        "hello",
+				Description: "Get a greeting from gophord",
+			},
+			{
+				Name:        "ephemeral",
+				Description: "Send a message only you can see",
+			},
 		}
 
 		guildIDStr := os.Getenv("DISCORD_GUILD_ID")
 		if guildIDStr != "" {
-			// Dev Mode: Register to specific guild for instant updates
 			gID, err := types.ParseSnowflake(guildIDStr)
 			if err != nil {
 				log.Printf("Invalid DISCORD_GUILD_ID: %v", err)
 				return
 			}
-			_, err = bot.RegisterGuildCommand(ctx, gID, cmdParams)
-			if err != nil {
-				log.Printf("Failed to register guild slash command: %v", err)
-			} else {
-				log.Printf("Successfully registered /hello slash command to guild %s (Instant Update)", gID)
+			for _, cmd := range commands {
+				_, err = bot.RegisterGuildCommand(ctx, gID, cmd)
+				if err != nil {
+					log.Printf("Failed to register guild slash command %s: %v", cmd.Name, err)
+				}
 			}
+			log.Printf("Successfully registered slash commands to guild %s", gID)
 		} else {
-			// Production: Register globally (can take up to 1 hour to update)
-			_, err := bot.RegisterGlobalCommand(ctx, cmdParams)
-			if err != nil {
-				log.Printf("Failed to register global slash command: %v", err)
-			} else {
-				log.Println("Successfully registered /hello slash command globally (May take up to 1 hour to update)")
+			for _, cmd := range commands {
+				_, err := bot.RegisterGlobalCommand(ctx, cmd)
+				if err != nil {
+					log.Printf("Failed to register global slash command %s: %v", cmd.Name, err)
+				}
 			}
+			log.Println("Successfully registered slash commands globally")
 		}
 	}()
 
@@ -172,6 +187,13 @@ func handlePing(ctx context.Context, bot *client.Client, event *gateway.MessageC
 	_, err := bot.SendMessage(ctx, event.ChannelID, "Pong! 🏓")
 	if err != nil {
 		log.Printf("Failed to send ping response: %v", err)
+	}
+}
+
+func handleSilent(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent, content string) {
+	_, err := bot.SendMessageSilent(ctx, event.ChannelID, fmt.Sprintf("🤫 %s", content))
+	if err != nil {
+		log.Printf("Failed to send silent message: %v", err)
 	}
 }
 
@@ -231,6 +253,85 @@ func handleWebhookDemo(ctx context.Context, bot *client.Client, event *gateway.M
 	}
 
 	bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Created and executed webhook: **%s**", name))
+}
+
+func handleReact(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent, messageIDStr, emoji string) {
+	mID, err := types.ParseSnowflake(messageIDStr)
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, "Invalid Message ID!")
+		return
+	}
+
+	err = bot.React(ctx, event.ChannelID, mID, emoji)
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Failed to react: %v", err))
+		return
+	}
+}
+
+func handlePin(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent, messageIDStr string) {
+	mID, err := types.ParseSnowflake(messageIDStr)
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, "Invalid Message ID!")
+		return
+	}
+
+	err = bot.Pin(ctx, event.ChannelID, mID)
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Failed to pin: %v", err))
+		return
+	}
+
+	bot.SendMessage(ctx, event.ChannelID, "Pinned message! 📌")
+}
+
+func handlePurge(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent, countStr string) {
+	count := 0
+	fmt.Sscanf(countStr, "%d", &count)
+	if count <= 0 || count > 100 {
+		bot.SendMessage(ctx, event.ChannelID, "Please specify a count between 1 and 100.")
+		return
+	}
+
+	// Fetch messages (count + 1 to include the command message itself so we can skip it)
+	messages, err := bot.REST.GetMessages(ctx, event.ChannelID, &rest.GetMessagesParams{Limit: count + 1})
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Failed to fetch messages: %v", err))
+		return
+	}
+
+	if len(messages) == 0 {
+		return
+	}
+
+	// Collect IDs, skipping the command message (the first one)
+	ids := make([]types.Snowflake, 0, len(messages))
+	for i, m := range messages {
+		// The first message in the list is the !purge command we just sent
+		if i == 0 {
+			// We delete the command message separately or just let it be purged
+			// Actually, let's include it in the purge to keep chat clean
+			ids = append(ids, m.ID)
+			continue
+		}
+		ids = append(ids, m.ID)
+	}
+
+	// If we only have 1 ID (e.g. only the command itself), use DeleteMessage
+	if len(ids) == 1 {
+		err = bot.REST.DeleteMessage(ctx, event.ChannelID, ids[0])
+	} else {
+		// Use BulkDelete for 2-100 messages
+		err = bot.REST.BulkDeleteMessages(ctx, event.ChannelID, ids)
+	}
+
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Failed to purge: %v", err))
+		return
+	}
+
+	// Send a confirmation that auto-deletes or is silent
+	bot.SendMessageSilent(ctx, event.ChannelID, fmt.Sprintf("🧹 Purged %d messages (including command).", len(ids)))
 }
 
 func handleComponents(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
@@ -333,6 +434,11 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 			if err != nil {
 				log.Printf("Failed to respond to /hello interaction: %v", err)
 			}
+		} else if interaction.Data.Name == "ephemeral" {
+			err := bot.RespondWithEphemeral(ctx, interaction, "This is an ephemeral message! Only you can see this. 👀")
+			if err != nil {
+				log.Printf("Failed to respond to /ephemeral interaction: %v", err)
+			}
 		}
 		return
 	}
@@ -350,6 +456,8 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 	customID := interaction.Data.CustomID
 
 	var response string
+	isEphemeral := false
+
 	switch customID {
 	case "greet_back":
 		userName := "friend"
@@ -362,9 +470,11 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 	case "show_info":
 		response = "**Gophord Info**\n\n" +
 			"• High-performance Go Discord library\n" +
+			"• Uses lxzan/gws for WebSocket\n" +
 			"• Uses bytedance/sonic for fast JSON\n" +
 			"• Full Components V2 support\n" +
-			"• Idiomatic Go design"
+			"• Native Mobile Status preset"
+		isEphemeral = true // Make info ephemeral to keep chat clean
 	case "say_goodbye":
 		response = "Goodbye! See you next time! 👋"
 	case "btn_primary", "btn_secondary", "btn_success", "btn_danger":
@@ -373,11 +483,18 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 		response = "Action taken! ✅"
 	case "container_dismiss":
 		response = "Dismissed! 👍"
+		isEphemeral = true
 	default:
 		response = fmt.Sprintf("Button clicked: `%s`", customID)
 	}
 
-	err := bot.RespondWithMessage(ctx, interaction, response)
+	var err error
+	if isEphemeral {
+		err = bot.RespondWithEphemeral(ctx, interaction, response)
+	} else {
+		err = bot.RespondWithMessage(ctx, interaction, response)
+	}
+
 	if err != nil {
 		log.Printf("Failed to respond to interaction: %v", err)
 	}
