@@ -48,11 +48,11 @@ func main() {
 	bot := client.New(*token,
 		client.WithIntents(
 			types.IntentGuilds|
-			types.IntentGuildMessages|
-			types.IntentGuildMessageReactions|
-			types.IntentDirectMessages|
-			types.IntentMessageContent|
-			types.IntentGuildMembers, // Required for management features
+				types.IntentGuildMessages|
+				types.IntentGuildMessageReactions|
+				types.IntentDirectMessages|
+				types.IntentMessageContent|
+				types.IntentGuildMembers, // Required for management features
 		),
 		client.WithMobileStatus(true), // Enable mobile status (Discord Android)
 	)
@@ -120,6 +120,10 @@ func main() {
 				Name:        "ephemeral",
 				Description: "Send a message only you can see",
 			},
+			{
+				Name:        "modal",
+				Description: "Open a test modal",
+			},
 		}
 
 		guildIDStr := os.Getenv("DISCORD_GUILD_ID")
@@ -169,7 +173,7 @@ func main() {
 		cancel()
 	}()
 
-	<-	stop
+	<-stop
 	log.Println("\nShutting down...")
 
 	// Restore terminal before exit
@@ -334,6 +338,75 @@ func handlePurge(ctx context.Context, bot *client.Client, event *gateway.Message
 	bot.SendMessageSilent(ctx, event.ChannelID, fmt.Sprintf("🧹 Purged %d messages (including command).", len(ids)))
 }
 
+func handleModalDemo(ctx context.Context, bot *client.Client, interaction *types.Interaction) {
+	// Comprehensive modal demo with all supported component types
+	components := client.NewComponentBuilder().
+		// Text Input (Short - Style 1)
+		AddLabel(client.NewLabel("Your Name", "Please enter your name",
+			client.NewTextInput("name_input", "", 1, client.WithRequired(true)),
+		)).
+		// Text Input (Paragraph - Style 2)
+		AddLabel(client.NewLabel("Feedback", "Tell us what you think",
+			client.NewTextInput("feedback_input", "", 2,
+				client.WithPlaceholder("Share your thoughts..."),
+				client.WithMinLength(10),
+				client.WithMaxLength(500)),
+		)).
+		// String Select with options
+		AddLabel(client.NewLabel("Favorite Bug", "Choose your favorite bug",
+			client.NewStringSelect("bug_select",
+				types.SelectOption{Label: "Ant", Value: "ant", Description: "(best option)", Emoji: &types.PartialEmoji{Name: "🐜"}},
+				types.SelectOption{Label: "Butterfly", Value: "butterfly", Emoji: &types.PartialEmoji{Name: "🦋"}},
+				types.SelectOption{Label: "Caterpillar", Value: "caterpillar", Emoji: &types.PartialEmoji{Name: "🐛"}},
+			),
+		)).
+		// User Select
+		AddLabel(client.NewLabel("Pick a User", "Select a user to mention",
+			client.NewUserSelect("user_select"),
+		)).
+		// Channel Select
+		AddLabel(client.NewLabel("Pick a Channel", "Select a channel",
+			client.NewChannelSelect("channel_select"),
+		)).
+		Build()
+
+	err := bot.ShowModal(ctx, interaction, "Components V2 Modal Demo", "demo_modal", components)
+	if err != nil {
+		log.Printf("Failed to show modal: %v", err)
+	}
+}
+
+func handleModalSubmit(ctx context.Context, bot *client.Client, interaction *types.Interaction) {
+	var results []string
+
+	for _, comp := range interaction.Data.Components {
+		if container, ok := comp.(*types.Label); ok {
+			switch inner := container.Component.(type) {
+			case *types.TextInput:
+				results = append(results, fmt.Sprintf("**%s**: %s", inner.CustomID, inner.Value))
+			case *types.StringSelect:
+				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
+			case *types.UserSelect:
+				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
+			case *types.RoleSelect:
+				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
+			case *types.ChannelSelect:
+				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
+			case *types.MentionableSelect:
+				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
+			case *types.FileUpload:
+				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
+			}
+		}
+	}
+
+	response := "## Modal Submission Results\n" + strings.Join(results, "\n")
+	err := bot.RespondWithEphemeral(ctx, interaction, response)
+	if err != nil {
+		log.Printf("Failed to respond to modal submit: %v", err)
+	}
+}
+
 func handleComponents(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
 	// Demonstrate various Components V2 features
 	components := client.NewComponentBuilder().
@@ -439,7 +512,15 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 			if err != nil {
 				log.Printf("Failed to respond to /ephemeral interaction: %v", err)
 			}
+		} else if interaction.Data.Name == "modal" {
+			handleModalDemo(ctx, bot, interaction)
 		}
+		return
+	}
+
+	// Handle modal submissions
+	if interaction.Type == types.InteractionTypeModalSubmit {
+		handleModalSubmit(ctx, bot, interaction)
 		return
 	}
 

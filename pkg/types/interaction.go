@@ -243,8 +243,8 @@ type TextInput struct {
 	CustomID string `json:"custom_id"`
 	// Style is the text input style (1=short, 2=paragraph).
 	Style int `json:"style"`
-	// Label is the label for the input (max 45 characters).
-	Label string `json:"label"`
+	// Label is the label for the input (max 45 characters). Not used when inside InputContainer.
+	Label string `json:"label,omitempty"`
 	// MinLength is the minimum input length (0-4000).
 	MinLength *int `json:"min_length,omitempty"`
 	// MaxLength is the maximum input length (1-4000).

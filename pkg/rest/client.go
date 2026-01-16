@@ -169,6 +169,9 @@ type APIError struct {
 
 // Error implements the error interface.
 func (e *APIError) Error() string {
+	if len(e.Errors) > 0 {
+		return fmt.Sprintf("discord api error %d: %s (code: %d, errors: %v)", e.StatusCode, e.Message, e.Code, e.Errors)
+	}
 	return fmt.Sprintf("discord api error %d: %s (code: %d)", e.StatusCode, e.Message, e.Code)
 }
 

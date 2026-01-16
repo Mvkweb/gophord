@@ -193,6 +193,82 @@ func (t *TextInput) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// MarshalJSON implements json.Marshaler for Label.
+func (i *Label) MarshalJSON() ([]byte, error) {
+	type labelAlias Label
+	return sonic.Marshal(&struct {
+		Type ComponentType `json:"type"`
+		*labelAlias
+	}{
+		Type:       ComponentTypeLabel,
+		labelAlias: (*labelAlias)(i),
+	})
+}
+
+// UnmarshalJSON implements json.Unmarshaler for Label.
+// This handles the nested Component field which is an interface.
+func (l *Label) UnmarshalJSON(data []byte) error {
+	type labelAlias Label
+	aux := &struct {
+		*labelAlias
+		Component json.RawMessage `json:"component"`
+	}{
+		labelAlias: (*labelAlias)(l),
+	}
+
+	if err := sonic.Unmarshal(data, aux); err != nil {
+		return fmt.Errorf("failed to unmarshal label: %w", err)
+	}
+
+	if len(aux.Component) > 0 {
+		comp, err := UnmarshalComponent(aux.Component)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal label component: %w", err)
+		}
+		l.Component = comp
+	}
+
+	return nil
+}
+
+// UnmarshalJSON implements json.Unmarshaler for Section.
+// This handles the Accessory field which is an interface.
+func (s *Section) UnmarshalJSON(data []byte) error {
+	type sectionAlias Section
+	aux := &struct {
+		*sectionAlias
+		Accessory json.RawMessage `json:"accessory"`
+	}{
+		sectionAlias: (*sectionAlias)(s),
+	}
+
+	if err := sonic.Unmarshal(data, aux); err != nil {
+		return fmt.Errorf("failed to unmarshal section: %w", err)
+	}
+
+	if len(aux.Accessory) > 0 {
+		acc, err := UnmarshalComponent(aux.Accessory)
+		if err != nil {
+			return fmt.Errorf("failed to unmarshal section accessory: %w", err)
+		}
+		s.Accessory = acc
+	}
+
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler for FileUpload.
+func (f *FileUpload) MarshalJSON() ([]byte, error) {
+	type fileUploadAlias FileUpload
+	return sonic.Marshal(&struct {
+		Type ComponentType `json:"type"`
+		*fileUploadAlias
+	}{
+		Type:            ComponentTypeFileUpload,
+		fileUploadAlias: (*fileUploadAlias)(f),
+	})
+}
+
 // UnmarshalJSON implements json.Unmarshaler for ComponentList.
 func (cl *ComponentList) UnmarshalJSON(data []byte) error {
 	components, err := UnmarshalComponents(data)
@@ -243,6 +319,10 @@ func UnmarshalComponent(data []byte) (Component, error) {
 		component = &Separator{}
 	case ComponentTypeContainer:
 		component = &Container{}
+	case ComponentTypeLabel:
+		component = &Label{}
+	case ComponentTypeFileUpload:
+		component = &FileUpload{}
 	default:
 		return nil, fmt.Errorf("unknown component type: %d", cj.Type)
 	}

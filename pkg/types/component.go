@@ -38,6 +38,10 @@ const (
 	ComponentTypeSeparator ComponentType = 14
 	// ComponentTypeContainer is a layout component for grouping components (type 17).
 	ComponentTypeContainer ComponentType = 17
+	// ComponentTypeLabel is a container for modal inputs (type 18).
+	ComponentTypeLabel ComponentType = 18
+	// ComponentTypeFileUpload is a file upload component for modals (type 19).
+	ComponentTypeFileUpload ComponentType = 19
 )
 
 // String returns the string representation of a ComponentType.
@@ -73,6 +77,10 @@ func (c ComponentType) String() string {
 		return "Separator"
 	case ComponentTypeContainer:
 		return "Container"
+	case ComponentTypeLabel:
+		return "Label"
+	case ComponentTypeFileUpload:
+		return "FileUpload"
 	default:
 		return "Unknown"
 	}
@@ -96,26 +104,6 @@ const (
 	ButtonStylePremium ButtonStyle = 6
 )
 
-// String returns the string representation of a ButtonStyle.
-func (b ButtonStyle) String() string {
-	switch b {
-	case ButtonStylePrimary:
-		return "Primary"
-	case ButtonStyleSecondary:
-		return "Secondary"
-	case ButtonStyleSuccess:
-		return "Success"
-	case ButtonStyleDanger:
-		return "Danger"
-	case ButtonStyleLink:
-		return "Link"
-	case ButtonStylePremium:
-		return "Premium"
-	default:
-		return "Unknown"
-	}
-}
-
 // SeparatorSpacing represents the padding size for separators.
 type SeparatorSpacing int
 
@@ -136,11 +124,10 @@ type Component interface {
 type ComponentList []Component
 
 // ActionRow is a top-level layout component that contains other components.
-// It can hold up to 5 buttons or a single select menu.
 type ActionRow struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// Components contains the child components (buttons or a single select).
+	// Components contains the child components.
 	Components ComponentList `json:"components"`
 }
 
@@ -155,14 +142,13 @@ type Button struct {
 	ID *int `json:"id,omitempty"`
 	// Style determines the button's visual appearance.
 	Style ButtonStyle `json:"style"`
-	// Label is the text displayed on the button (max 80 characters).
+	// Label is the text displayed on the button.
 	Label string `json:"label,omitempty"`
 	// Emoji is the partial emoji displayed on the button.
 	Emoji *PartialEmoji `json:"emoji,omitempty"`
-	// CustomID is the developer-defined identifier (max 100 characters).
-	// Required for non-link, non-premium buttons.
+	// CustomID is the developer-defined identifier.
 	CustomID string `json:"custom_id,omitempty"`
-	// URL is the link for link-style buttons (max 512 characters).
+	// URL is the link for link-style buttons.
 	URL string `json:"url,omitempty"`
 	// SKUID is the identifier for premium buttons.
 	SKUID *Snowflake `json:"sku_id,omitempty"`
@@ -177,11 +163,11 @@ func (b *Button) Type() ComponentType {
 
 // SelectOption represents an option in a string select menu.
 type SelectOption struct {
-	// Label is the user-facing name (max 100 characters).
+	// Label is the user-facing name.
 	Label string `json:"label"`
-	// Value is the developer-defined value (max 100 characters).
+	// Value is the developer-defined value.
 	Value string `json:"value"`
-	// Description is additional text (max 100 characters).
+	// Description is additional text.
 	Description string `json:"description,omitempty"`
 	// Emoji is the partial emoji for the option.
 	Emoji *PartialEmoji `json:"emoji,omitempty"`
@@ -193,15 +179,17 @@ type SelectOption struct {
 type StringSelect struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// CustomID is the developer-defined identifier (max 100 characters).
+	// CustomID is the developer-defined identifier.
 	CustomID string `json:"custom_id"`
-	// Options contains the available choices (max 25).
+	// Options contains the available choices.
 	Options []SelectOption `json:"options"`
-	// Placeholder is the text shown when nothing is selected (max 150 characters).
+	// Values contains the selected values (incoming interactions).
+	Values []string `json:"values,omitempty"`
+	// Placeholder is the text shown when nothing is selected.
 	Placeholder string `json:"placeholder,omitempty"`
-	// MinValues is the minimum number of selections (0-25, default 1).
+	// MinValues is the minimum number of selections.
 	MinValues *int `json:"min_values,omitempty"`
-	// MaxValues is the maximum number of selections (1-25, default 1).
+	// MaxValues is the maximum number of selections.
 	MaxValues *int `json:"max_values,omitempty"`
 	// Disabled indicates whether the select is disabled.
 	Disabled bool `json:"disabled,omitempty"`
@@ -214,9 +202,9 @@ func (s *StringSelect) Type() ComponentType {
 
 // SelectDefaultValue represents a default value for auto-populated selects.
 type SelectDefaultValue struct {
-	// ID is the snowflake ID of the user, role, or channel.
+	// ID is the snowflake ID.
 	ID Snowflake `json:"id"`
-	// Type indicates what ID represents: "user", "role", or "channel".
+	// Type indicates what ID represents.
 	Type string `json:"type"`
 }
 
@@ -224,15 +212,17 @@ type SelectDefaultValue struct {
 type UserSelect struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// CustomID is the developer-defined identifier (max 100 characters).
+	// CustomID is the developer-defined identifier.
 	CustomID string `json:"custom_id"`
-	// Placeholder is the text shown when nothing is selected (max 150 characters).
+	// Values contains the selected values (incoming interactions).
+	Values []string `json:"values,omitempty"`
+	// Placeholder is the text shown when nothing is selected.
 	Placeholder string `json:"placeholder,omitempty"`
 	// DefaultValues contains pre-selected users.
 	DefaultValues []SelectDefaultValue `json:"default_values,omitempty"`
-	// MinValues is the minimum number of selections (0-25, default 1).
+	// MinValues is the minimum number of selections.
 	MinValues *int `json:"min_values,omitempty"`
-	// MaxValues is the maximum number of selections (1-25, default 1).
+	// MaxValues is the maximum number of selections.
 	MaxValues *int `json:"max_values,omitempty"`
 	// Disabled indicates whether the select is disabled.
 	Disabled bool `json:"disabled,omitempty"`
@@ -247,15 +237,17 @@ func (u *UserSelect) Type() ComponentType {
 type RoleSelect struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// CustomID is the developer-defined identifier (max 100 characters).
+	// CustomID is the developer-defined identifier.
 	CustomID string `json:"custom_id"`
-	// Placeholder is the text shown when nothing is selected (max 150 characters).
+	// Values contains the selected values (incoming interactions).
+	Values []string `json:"values,omitempty"`
+	// Placeholder is the text shown when nothing is selected.
 	Placeholder string `json:"placeholder,omitempty"`
 	// DefaultValues contains pre-selected roles.
 	DefaultValues []SelectDefaultValue `json:"default_values,omitempty"`
-	// MinValues is the minimum number of selections (0-25, default 1).
+	// MinValues is the minimum number of selections.
 	MinValues *int `json:"min_values,omitempty"`
-	// MaxValues is the maximum number of selections (1-25, default 1).
+	// MaxValues is the maximum number of selections.
 	MaxValues *int `json:"max_values,omitempty"`
 	// Disabled indicates whether the select is disabled.
 	Disabled bool `json:"disabled,omitempty"`
@@ -270,15 +262,17 @@ func (r *RoleSelect) Type() ComponentType {
 type MentionableSelect struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// CustomID is the developer-defined identifier (max 100 characters).
+	// CustomID is the developer-defined identifier.
 	CustomID string `json:"custom_id"`
-	// Placeholder is the text shown when nothing is selected (max 150 characters).
+	// Values contains the selected values (incoming interactions).
+	Values []string `json:"values,omitempty"`
+	// Placeholder is the text shown when nothing is selected.
 	Placeholder string `json:"placeholder,omitempty"`
 	// DefaultValues contains pre-selected users and roles.
 	DefaultValues []SelectDefaultValue `json:"default_values,omitempty"`
-	// MinValues is the minimum number of selections (0-25, default 1).
+	// MinValues is the minimum number of selections.
 	MinValues *int `json:"min_values,omitempty"`
-	// MaxValues is the maximum number of selections (1-25, default 1).
+	// MaxValues is the maximum number of selections.
 	MaxValues *int `json:"max_values,omitempty"`
 	// Disabled indicates whether the select is disabled.
 	Disabled bool `json:"disabled,omitempty"`
@@ -293,17 +287,19 @@ func (m *MentionableSelect) Type() ComponentType {
 type ChannelSelect struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// CustomID is the developer-defined identifier (max 100 characters).
+	// CustomID is the developer-defined identifier.
 	CustomID string `json:"custom_id"`
 	// ChannelTypes filters the available channel types.
 	ChannelTypes []ChannelType `json:"channel_types,omitempty"`
-	// Placeholder is the text shown when nothing is selected (max 150 characters).
+	// Values contains the selected values (incoming interactions).
+	Values []string `json:"values,omitempty"`
+	// Placeholder is the text shown when nothing is selected.
 	Placeholder string `json:"placeholder,omitempty"`
 	// DefaultValues contains pre-selected channels.
 	DefaultValues []SelectDefaultValue `json:"default_values,omitempty"`
-	// MinValues is the minimum number of selections (0-25, default 1).
+	// MinValues is the minimum number of selections.
 	MinValues *int `json:"min_values,omitempty"`
-	// MaxValues is the maximum number of selections (1-25, default 1).
+	// MaxValues is the maximum number of selections.
 	MaxValues *int `json:"max_values,omitempty"`
 	// Disabled indicates whether the select is disabled.
 	Disabled bool `json:"disabled,omitempty"`
@@ -346,15 +342,15 @@ func (t *TextDisplay) Type() ComponentType {
 type UnfurledMediaItem struct {
 	// URL supports arbitrary URLs and attachment:// references.
 	URL string `json:"url"`
-	// ProxyURL is the proxied URL (populated by Discord).
+	// ProxyURL is the proxied URL.
 	ProxyURL string `json:"proxy_url,omitempty"`
-	// Height is the media height in pixels (populated by Discord).
+	// Height is the media height in pixels.
 	Height *int `json:"height,omitempty"`
-	// Width is the media width in pixels (populated by Discord).
+	// Width is the media width in pixels.
 	Width *int `json:"width,omitempty"`
-	// ContentType is the MIME type (populated by Discord).
+	// ContentType is the MIME type.
 	ContentType string `json:"content_type,omitempty"`
-	// AttachmentID is the uploaded attachment ID (populated by Discord).
+	// AttachmentID is the uploaded attachment ID.
 	AttachmentID *Snowflake `json:"attachment_id,omitempty"`
 }
 
@@ -364,7 +360,7 @@ type Thumbnail struct {
 	ID *int `json:"id,omitempty"`
 	// Media is the URL or attachment reference.
 	Media UnfurledMediaItem `json:"media"`
-	// Description is alt text for accessibility (max 1024 characters).
+	// Description is alt text.
 	Description string `json:"description,omitempty"`
 	// Spoiler indicates whether to blur the image.
 	Spoiler bool `json:"spoiler,omitempty"`
@@ -379,7 +375,7 @@ func (t *Thumbnail) Type() ComponentType {
 type MediaGalleryItem struct {
 	// Media is the URL or attachment reference.
 	Media UnfurledMediaItem `json:"media"`
-	// Description is alt text for accessibility (max 1024 characters).
+	// Description is alt text.
 	Description string `json:"description,omitempty"`
 	// Spoiler indicates whether to blur the media.
 	Spoiler bool `json:"spoiler,omitempty"`
@@ -402,13 +398,13 @@ func (m *MediaGallery) Type() ComponentType {
 type File struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// File references the attachment (attachment:// protocol only).
+	// File references the attachment.
 	File UnfurledMediaItem `json:"file"`
 	// Spoiler indicates whether to blur the file preview.
 	Spoiler bool `json:"spoiler,omitempty"`
-	// Name is the filename (populated by Discord).
+	// Name is the filename.
 	Name string `json:"name,omitempty"`
-	// Size is the file size in bytes (populated by Discord).
+	// Size is the file size in bytes.
 	Size int64 `json:"size,omitempty"`
 }
 
@@ -421,9 +417,9 @@ func (f *File) Type() ComponentType {
 type Separator struct {
 	// ID is an optional identifier for the component.
 	ID *int `json:"id,omitempty"`
-	// Divider indicates whether to show a visual line (default true).
+	// Divider indicates whether to show a visual line.
 	Divider *bool `json:"divider,omitempty"`
-	// Spacing is the padding size (1=small, 2=large, default 1).
+	// Spacing is the padding size.
 	Spacing SeparatorSpacing `json:"spacing,omitempty"`
 }
 
@@ -438,7 +434,7 @@ type Container struct {
 	ID *int `json:"id,omitempty"`
 	// Components contains the child components.
 	Components ComponentList `json:"components"`
-	// AccentColor is the RGB color for the accent bar (0x000000 to 0xFFFFFF).
+	// AccentColor is the RGB color for the accent bar.
 	AccentColor *int `json:"accent_color,omitempty"`
 	// Spoiler indicates whether to blur the container contents.
 	Spoiler bool `json:"spoiler,omitempty"`
@@ -447,4 +443,36 @@ type Container struct {
 // Type returns ComponentTypeContainer.
 func (c *Container) Type() ComponentType {
 	return ComponentTypeContainer
+}
+
+// Label is a layout component for modal inputs.
+type Label struct {
+	// ID is an optional identifier for the component.
+	ID *int `json:"id,omitempty"`
+	// Label is the label for the input.
+	Label string `json:"label,omitempty"`
+	// Description is the description for the input.
+	Description string `json:"description,omitempty"`
+	// Component is the wrapped component (TextInput or Select).
+	Component Component `json:"component"`
+}
+
+// Type returns ComponentTypeLabel.
+func (i *Label) Type() ComponentType {
+	return ComponentTypeLabel
+}
+
+// FileUpload is an interactive component for uploading files in modals.
+type FileUpload struct {
+	// ID is an optional identifier for the component.
+	ID *int `json:"id,omitempty"`
+	// CustomID is the developer-defined identifier.
+	CustomID string `json:"custom_id"`
+	// Values contains the uploaded attachment IDs (on modal submit).
+	Values []string `json:"values,omitempty"`
+}
+
+// Type returns ComponentTypeFileUpload.
+func (f *FileUpload) Type() ComponentType {
+	return ComponentTypeFileUpload
 }

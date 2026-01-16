@@ -215,6 +215,19 @@ func (c *Client) RespondWithEphemeral(ctx context.Context, interaction *types.In
 	})
 }
 
+// ShowModal shows a modal to the user.
+func (c *Client) ShowModal(ctx context.Context, interaction *types.Interaction, title, customID string, components types.ComponentList) error {
+	return c.RespondToInteraction(ctx, interaction, &types.InteractionResponse{
+		Type: types.InteractionCallbackTypeModal,
+		Data: &types.InteractionCallbackData{
+			Title:      title,
+			CustomID:   customID,
+			Components: components,
+			Flags:      types.MessageFlagIsComponentsV2,
+		},
+	})
+}
+
 // RespondWithComponents responds to an interaction with components V2.
 func (c *Client) RespondWithComponents(ctx context.Context, interaction *types.Interaction, components types.ComponentList) error {
 	return c.RespondToInteraction(ctx, interaction, &types.InteractionResponse{
@@ -368,13 +381,11 @@ func (b *ComponentBuilder) AddTextDisplay(content string) *ComponentBuilder {
 	return b
 }
 
-// AddActionRow adds an action row with buttons.
-func (b *ComponentBuilder) AddActionRow(buttons ...*types.Button) *ComponentBuilder {
-	components := make(types.ComponentList, len(buttons))
-	for i, btn := range buttons {
-		components[i] = btn
-	}
-	b.components = append(b.components, &types.ActionRow{Components: components})
+// AddActionRow adds an action row with components.
+func (b *ComponentBuilder) AddActionRow(components ...types.Component) *ComponentBuilder {
+	list := make(types.ComponentList, len(components))
+	copy(list, components)
+	b.components = append(b.components, &types.ActionRow{Components: list})
 	return b
 }
 
@@ -408,6 +419,12 @@ func (b *ComponentBuilder) AddSection(textContent string, accessory types.Compon
 		Components: types.ComponentList{&types.TextDisplay{Content: textContent}},
 		Accessory:  accessory,
 	})
+	return b
+}
+
+// AddLabel adds a label component (Type 18) for modals.
+func (b *ComponentBuilder) AddLabel(label *types.Label) *ComponentBuilder {
+	b.components = append(b.components, label)
 	return b
 }
 
@@ -465,5 +482,105 @@ func NewLinkButton(url, label string) *types.Button {
 		Style: types.ButtonStyleLink,
 		URL:   url,
 		Label: label,
+	}
+}
+
+// NewTextInput creates a new text input component.
+func NewTextInput(customID, label string, style int, opts ...func(*types.TextInput)) *types.TextInput {
+	ti := &types.TextInput{
+		CustomID: customID,
+		Label:    label,
+		Style:    style,
+	}
+	for _, opt := range opts {
+		opt(ti)
+	}
+	return ti
+}
+
+// WithMinLength sets the minimum length for a text input.
+func WithMinLength(min int) func(*types.TextInput) {
+	return func(ti *types.TextInput) {
+		ti.MinLength = &min
+	}
+}
+
+// WithMaxLength sets the maximum length for a text input.
+func WithMaxLength(max int) func(*types.TextInput) {
+	return func(ti *types.TextInput) {
+		ti.MaxLength = &max
+	}
+}
+
+// WithPlaceholder sets the placeholder text for a text input.
+func WithPlaceholder(placeholder string) func(*types.TextInput) {
+	return func(ti *types.TextInput) {
+		ti.Placeholder = placeholder
+	}
+}
+
+// WithRequired sets whether a text input is required.
+func WithRequired(required bool) func(*types.TextInput) {
+	return func(ti *types.TextInput) {
+		ti.Required = &required
+	}
+}
+
+// NewStringSelect creates a new string select menu.
+func NewStringSelect(customID string, options ...types.SelectOption) *types.StringSelect {
+	return &types.StringSelect{
+		CustomID: customID,
+		Options:  options,
+	}
+}
+
+// NewLabel creates a new label (Type 18) for modals.
+func NewLabel(label, description string, component types.Component) *types.Label {
+	return &types.Label{
+		Label:       label,
+		Description: description,
+		Component:   component,
+	}
+}
+
+// NewUserSelect creates a new user select menu for modals.
+func NewUserSelect(customID string) *types.UserSelect {
+	return &types.UserSelect{
+		CustomID: customID,
+	}
+}
+
+// NewRoleSelect creates a new role select menu for modals.
+func NewRoleSelect(customID string) *types.RoleSelect {
+	return &types.RoleSelect{
+		CustomID: customID,
+	}
+}
+
+// NewMentionableSelect creates a new mentionable select menu (users + roles) for modals.
+func NewMentionableSelect(customID string) *types.MentionableSelect {
+	return &types.MentionableSelect{
+		CustomID: customID,
+	}
+}
+
+// NewChannelSelect creates a new channel select menu for modals.
+func NewChannelSelect(customID string) *types.ChannelSelect {
+	return &types.ChannelSelect{
+		CustomID: customID,
+	}
+}
+
+// NewFileUpload creates a new file upload component for modals.
+func NewFileUpload(customID string) *types.FileUpload {
+	return &types.FileUpload{
+		CustomID: customID,
+	}
+}
+
+// NewTextDisplay creates a new text display component for modals.
+func NewTextDisplay(content string) *types.TextDisplay {
+	return &types.TextDisplay{
+		Content: content,
 	}
 }
