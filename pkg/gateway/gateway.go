@@ -13,7 +13,7 @@ import (
 
 	"github.com/gophord/gophord/pkg/json"
 	"github.com/gophord/gophord/pkg/types"
-	"github.com/gorilla/websocket"
+	"github.com/lxzan/gws"
 )
 
 // Opcodes for gateway payloads.
@@ -123,7 +123,7 @@ type Event struct {
 type Client struct {
 	token        string
 	intents      types.IntentFlags
-	conn         *websocket.Conn
+	conn         *gws.Conn
 	sessionID    string
 	resumeURL    string
 	sequence     atomic.Int64
@@ -177,7 +177,14 @@ func (c *Client) Connect(ctx context.Context) error {
 		url = c.resumeURL
 	}
 
-	conn, _, err := websocket.DefaultDialer.DialContext(ctx, url, nil)
+	conn, _, err := gws.NewClient(c, &gws.ClientOption{
+		Addr:             url,
+		PermessageDeflate: gws.PermessageDeflate{
+			Enabled:               true,
+			ServerContextTakeover: true,
+			ClientContextTakeover: true,
+		},
+	})
 	if err != nil {
 		return fmt.Errorf("dial gateway: %w", err)
 	}
@@ -188,7 +195,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	c.mu.Unlock()
 
 	// Start reading messages
-	go c.readLoop()
+	go conn.ReadLoop()
 
 	return nil
 }
@@ -216,48 +223,44 @@ func (c *Client) Close() error {
 	close(c.done)
 
 	if c.conn != nil {
-		err := c.conn.Close()
-		c.conn = nil
-		return err
+		// NetConn().Close() is the underlying connection
+		return c.conn.NetConn().Close()
 	}
 
 	return nil
 }
 
-// readLoop reads messages from the WebSocket connection.
-func (c *Client) readLoop() {
-	defer func() {
-		c.mu.Lock()
-		if c.conn != nil {
-			c.conn.Close()
-			c.conn = nil
-		}
-		c.mu.Unlock()
-	}()
+// OnOpen implements gws.EventHandler.
+func (c *Client) OnOpen(socket *gws.Conn) {
+	// No-op
+}
 
-	for {
+// OnClose implements gws.EventHandler.
+func (c *Client) OnClose(socket *gws.Conn, err error) {
+	select {
+	case c.done <- struct{}{}:
+	default:
+	}
+}
+
+// OnPing implements gws.EventHandler.
+func (c *Client) OnPing(socket *gws.Conn, payload []byte) {
+	_ = socket.WritePong(payload)
+}
+
+// OnPong implements gws.EventHandler.
+func (c *Client) OnPong(socket *gws.Conn, payload []byte) {
+	// No-op
+}
+
+// OnMessage implements gws.EventHandler.
+func (c *Client) OnMessage(socket *gws.Conn, message *gws.Message) {
+	defer message.Close()
+
+	if err := c.handleMessage(message.Bytes()); err != nil {
 		select {
-		case <-c.done:
-			return
+		case c.errors <- err:
 		default:
-		}
-
-		_, message, err := c.conn.ReadMessage()
-		if err != nil {
-			select {
-			case <-c.done:
-				return
-			case c.errors <- fmt.Errorf("read message: %w", err):
-			default:
-			}
-			return
-		}
-
-		if err := c.handleMessage(message); err != nil {
-			select {
-			case c.errors <- err:
-			default:
-			}
 		}
 	}
 }
@@ -293,8 +296,9 @@ func (c *Client) handleDispatch(payload *GatewayPayload, raw []byte) error {
 		c.sequence.Store(*payload.S)
 	}
 
-	// Extract the event data
-	eventData, err := json.GetFromString(string(raw), "d")
+	// Extract the event data using json.Get (references buffer)
+	// We need to use MarshalJSON immediately to get a safe copy
+	eventData, err := json.Get(raw, "d")
 	if err != nil {
 		return fmt.Errorf("extract event data: %w", err)
 	}
@@ -321,7 +325,7 @@ func (c *Client) handleDispatch(payload *GatewayPayload, raw []byte) error {
 	// Send event to channel
 	event := &Event{
 		Type:     payload.T,
-		Data:     dataBytes,
+		Data:     dataBytes, // Safe copy from MarshalJSON
 		Sequence: c.sequence.Load(),
 	}
 
@@ -342,7 +346,7 @@ func (c *Client) handleDispatch(payload *GatewayPayload, raw []byte) error {
 // handleHello handles a Hello payload.
 func (c *Client) handleHello(data []byte) error {
 	// Extract heartbeat interval
-	intervalNode, err := json.GetFromString(string(data), "d", "heartbeat_interval")
+	intervalNode, err := json.Get(data, "d", "heartbeat_interval")
 	if err != nil {
 		return fmt.Errorf("extract heartbeat interval: %w", err)
 	}
@@ -368,21 +372,15 @@ func (c *Client) handleHello(data []byte) error {
 
 // handleReconnect handles a Reconnect opcode.
 func (c *Client) handleReconnect() error {
-	// Close connection and reconnect
-	c.mu.Lock()
-	if c.conn != nil {
-		c.conn.Close()
-		c.conn = nil
-	}
-	c.mu.Unlock()
-
+	// gws handles reconnection logic mostly, but we trigger a reconnect manually here
+	c.Close()
 	return c.Connect(context.Background())
 }
 
 // handleInvalidSession handles an Invalid Session opcode.
 func (c *Client) handleInvalidSession(data []byte) error {
 	// Check if resumable
-	resumable, err := json.GetFromString(string(data), "d")
+	resumable, err := json.Get(data, "d")
 	if err == nil {
 		if b, err := resumable.Bool(); err == nil && b {
 			time.Sleep(time.Second * time.Duration(1+time.Now().UnixNano()%5))
@@ -495,7 +493,7 @@ func (c *Client) send(payload GatewayPayload) error {
 		return fmt.Errorf("marshal payload: %w", err)
 	}
 
-	return conn.WriteMessage(websocket.TextMessage, data)
+	return conn.WriteMessage(gws.OpcodeText, data)
 }
 
 // UpdatePresence updates the client's presence.

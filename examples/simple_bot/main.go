@@ -1,10 +1,12 @@
 // Package main demonstrates a simple Discord bot using gophord.
 //
 // This example shows how to:
-//   - Connect to Discord using the gateway
+//   - Connect to Discord using the gateway (lxzan/gws)
 //   - Handle basic events like messages and interactions
 //   - Send messages with Components V2
-//   - Respond to button interactions
+//   - Manage Guilds (Kick members)
+//   - Manage Webhooks (Create and Execute)
+//   - Identify as a Mobile Client
 //
 // To run this example:
 //
@@ -45,10 +47,11 @@ func main() {
 	bot := client.New(*token,
 		client.WithIntents(
 			types.IntentGuilds|
-				types.IntentGuildMessages|
-				types.IntentGuildMessageReactions|
-				types.IntentDirectMessages|
-				types.IntentMessageContent,
+			types.IntentGuildMessages|
+			types.IntentGuildMessageReactions|
+			types.IntentDirectMessages|
+			types.IntentMessageContent|
+			types.IntentGuildMembers, // Required for management features
 		),
 		client.WithMobileStatus(true), // Enable mobile status (Discord Android)
 	)
@@ -69,19 +72,25 @@ func main() {
 		}
 
 		ctx := context.Background()
-		content := strings.ToLower(event.Content)
+		content := event.Content
+		args := strings.Split(content, " ")
+		command := strings.ToLower(args[0])
 
 		switch {
-		case content == "!ping":
+		case command == "!ping":
 			handlePing(ctx, bot, event)
-		case content == "!hello":
+		case command == "!hello":
 			handleHello(ctx, bot, event)
-		case content == "!components":
+		case command == "!components":
 			handleComponents(ctx, bot, event)
-		case content == "!container":
+		case command == "!container":
 			handleContainer(ctx, bot, event)
-		case content == "!help":
+		case command == "!help":
 			handleHelp(ctx, bot, event)
+		case command == "!kick" && len(args) > 1:
+			handleKick(ctx, bot, event, args[1])
+		case command == "!webhook" && len(args) > 1:
+			handleWebhookDemo(ctx, bot, event, args[1])
 		}
 	})
 
@@ -145,7 +154,7 @@ func main() {
 		cancel()
 	}()
 
-	<-stop
+	<-	stop
 	log.Println("\nShutting down...")
 
 	// Restore terminal before exit
@@ -186,6 +195,44 @@ func handleHello(ctx context.Context, bot *client.Client, event *gateway.Message
 	}
 }
 
+func handleKick(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent, userIDStr string) {
+	if event.GuildID == nil {
+		bot.SendMessage(ctx, event.ChannelID, "This command can only be used in a server!")
+		return
+	}
+
+	uID, err := types.ParseSnowflake(userIDStr)
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, "Invalid User ID!")
+		return
+	}
+
+	err = bot.KickMember(ctx, *event.GuildID, uID)
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Failed to kick member: %v", err))
+		return
+	}
+
+	bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Successfully kicked user <@%s>! 🥾", userIDStr))
+}
+
+func handleWebhookDemo(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent, name string) {
+	// Create a webhook
+	webhook, err := bot.CreateWebhook(ctx, event.ChannelID, name)
+	if err != nil {
+		bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Failed to create webhook: %v", err))
+		return
+	}
+
+	// Execute it immediately
+	err = bot.ExecuteWebhook(ctx, webhook.ID, webhook.Token, fmt.Sprintf("Hello! I am the **%s** webhook, powered by gophord! 🦫", webhook.Name))
+	if err != nil {
+		log.Printf("Failed to execute webhook: %v", err)
+	}
+
+	bot.SendMessage(ctx, event.ChannelID, fmt.Sprintf("Created and executed webhook: **%s**", name))
+}
+
 func handleComponents(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
 	// Demonstrate various Components V2 features
 	components := client.NewComponentBuilder().
@@ -217,13 +264,13 @@ func handleContainer(ctx context.Context, bot *client.Client, event *gateway.Mes
 
 	container := &types.Container{
 		AccentColor: &accentColor,
-		Components: []types.Component{
+		Components: types.ComponentList{
 			&types.TextDisplay{Content: "# Contained Message"},
 			&types.TextDisplay{Content: "This message is wrapped in a **container** with an accent color bar!"},
 			&types.Separator{Divider: boolPtr(true), Spacing: types.SeparatorSpacingSmall},
 			&types.TextDisplay{Content: "Containers help organize and visually group related content."},
 			&types.ActionRow{
-				Components: []types.Component{
+				Components: types.ComponentList{
 					client.NewPrimaryButton("container_action", "Take Action"),
 					client.NewSecondaryButton("container_dismiss", "Dismiss"),
 				},
@@ -231,7 +278,7 @@ func handleContainer(ctx context.Context, bot *client.Client, event *gateway.Mes
 		},
 	}
 
-	components := []types.Component{container}
+	components := types.ComponentList{container}
 
 	_, err := bot.SendMessageWithComponents(ctx, event.ChannelID, components)
 	if err != nil {
@@ -243,7 +290,7 @@ func handleHelp(ctx context.Context, bot *client.Client, event *gateway.MessageC
 	components := client.NewComponentBuilder().
 		AddTextDisplay("# Gophord Bot Help").
 		AddTextDisplay("Available commands:").
-		AddTextDisplay("- `!ping` - Check if the bot is responsive\n- `!hello` - Get a greeting with interactive buttons\n- `!components` - See Components V2 features demo\n- `!container` - See a container with accent color\n- `!help` - Show this help message").
+		AddTextDisplay("- `!ping` - Check if the bot is responsive\n- `!hello` - Get a greeting with interactive buttons\n- `!kick <user_id>` - Kick a user from the server\n- `!webhook <name>` - Create and test a webhook\n- `!components` - See Components V2 features demo\n- `!container` - See a container with accent color\n- `!help` - Show this help message").
 		AddSeparator(true, types.SeparatorSpacingSmall).
 		AddTextDisplay("-# Powered by gophord - A high-performance Go Discord library").
 		Build()

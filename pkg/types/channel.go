@@ -141,6 +141,20 @@ type Channel struct {
 	DefaultForumLayout int `json:"default_forum_layout,omitempty"`
 }
 
+// CreateChannelParams contains parameters for creating a channel.
+type CreateChannelParams struct {
+	Name                 string            `json:"name"`
+	Type                 ChannelType       `json:"type,omitempty"`
+	Topic                string            `json:"topic,omitempty"`
+	Bitrate              int               `json:"bitrate,omitempty"`
+	UserLimit            int               `json:"user_limit,omitempty"`
+	RateLimitPerUser     int               `json:"rate_limit_per_user,omitempty"`
+	Position             int               `json:"position,omitempty"`
+	PermissionOverwrites []PermissionOverwrite `json:"permission_overwrites,omitempty"`
+	ParentID             Snowflake         `json:"parent_id,omitempty"`
+	NSFW                 bool              `json:"nsfw,omitempty"`
+}
+
 // PermissionOverwrite represents a channel permission overwrite.
 type PermissionOverwrite struct {
 	// ID is the role or user ID.

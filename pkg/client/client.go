@@ -259,7 +259,57 @@ func (c *Client) BulkRegisterGlobalCommands(ctx context.Context, commands []type
 	return c.REST.BulkOverwriteGlobalApplicationCommands(ctx, c.ApplicationID, commands)
 }
 
+// Guild & Member Management
+
+// KickMember kicks a member from a guild.
+func (c *Client) KickMember(ctx context.Context, guildID, userID types.Snowflake) error {
+	return c.REST.RemoveGuildMember(ctx, guildID, userID)
+}
+
+// BanMember bans a member from a guild.
+func (c *Client) BanMember(ctx context.Context, guildID, userID types.Snowflake, deleteMessageSeconds int) error {
+	return c.REST.CreateGuildBan(ctx, guildID, userID, deleteMessageSeconds)
+}
+
+// UnbanMember removes a ban from a guild.
+func (c *Client) UnbanMember(ctx context.Context, guildID, userID types.Snowflake) error {
+	return c.REST.RemoveGuildBan(ctx, guildID, userID)
+}
+
+// AddMemberRole adds a role to a guild member.
+func (c *Client) AddMemberRole(ctx context.Context, guildID, userID, roleID types.Snowflake) error {
+	return c.REST.AddGuildMemberRole(ctx, guildID, userID, roleID)
+}
+
+// RemoveMemberRole removes a role from a guild member.
+func (c *Client) RemoveMemberRole(ctx context.Context, guildID, userID, roleID types.Snowflake) error {
+	return c.REST.RemoveGuildMemberRole(ctx, guildID, userID, roleID)
+}
+
+// GetMember returns a guild member.
+func (c *Client) GetMember(ctx context.Context, guildID, userID types.Snowflake) (*types.GuildMember, error) {
+	return c.REST.GetGuildMember(ctx, guildID, userID)
+}
+
+// Webhooks
+
+// CreateWebhook creates a new webhook in a channel.
+func (c *Client) CreateWebhook(ctx context.Context, channelID types.Snowflake, name string) (*types.Webhook, error) {
+	return c.REST.CreateWebhook(ctx, channelID, &types.CreateWebhookParams{
+		Name: name,
+	})
+}
+
+// ExecuteWebhook executes a webhook by ID and token.
+func (c *Client) ExecuteWebhook(ctx context.Context, webhookID types.Snowflake, token string, content string) error {
+	_, err := c.REST.ExecuteWebhook(ctx, webhookID, token, false, &types.ExecuteWebhookParams{
+		Content: content,
+	})
+	return err
+}
+
 // ComponentBuilder provides fluent API for building message components.
+
 type ComponentBuilder struct {
 	components types.ComponentList
 }
