@@ -65,7 +65,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           
           # Copy versioned docs
-          cp docs.json "gophord-docs/docs/${VERSION}.json"
+          cp gophord/docs.json "gophord-docs/docs/${VERSION}.json"
           
           # Also update dev.json if this is from main branch (not a tag)
           if [[ "$VERSION" == "dev" ]]; then
