@@ -203,11 +203,16 @@ func main() {
 	docs.Examples = extractExamples(examplesRoot)
 
 	// Output to JSON
-	outputPath := "../../docs.json"
+	outputPath := "docs.json"
 	if _, err := os.Stat("package.json"); err == nil {
 		outputPath = "docs.json"
 	} else if _, err := os.Stat("gophord.go"); err == nil {
-		outputPath = "../docs.json"
+		outputPath = "docs.json"
+	} else if _, err := os.Stat("../../go.mod"); err == nil {
+		outputPath = "../../docs.json"
+	} else {
+		// Default to current directory if unsure
+		outputPath = "docs.json"
 	}
 
 	f, err := os.Create(outputPath)
