@@ -1,0 +1,12 @@
+{
+    "id": "sections",
+    "title": "Sections",
+    "description": "Create content layouts with an accessory on the right side. Accessories can be thumbnails (images) or buttons.",
+    "category": "components",
+    "notes": [
+        "Sections have Components (left) and an Accessory (right)",
+        "Accessory can be a Thumbnail or Button",
+        "Great for product cards, user profiles, or list items",
+        "Multiple TextDisplays can be stacked in Components"
+    ]
+}

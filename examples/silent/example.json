@@ -1,0 +1,12 @@
+{
+    "id": "silent",
+    "title": "Silent Messages",
+    "description": "Send messages without triggering notifications. Silent messages appear in the channel but don't push alerts to users' devices.",
+    "category": "messages",
+    "notes": [
+        "Use SendMessageSilent helper for convenience",
+        "Or set MessageFlagSuppressNotifications flag manually",
+        "Great for automated updates, logs, and non-urgent info",
+        "Works with regular messages (not just interactions)"
+    ]
+}

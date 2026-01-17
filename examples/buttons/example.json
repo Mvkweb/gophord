@@ -1,0 +1,12 @@
+{
+    "id": "buttons",
+    "title": "Button Components",
+    "description": "Create interactive buttons with different styles. Discord supports 5 button styles: Primary (blue), Secondary (gray), Success (green), Danger (red), and Link (opens URL).",
+    "category": "components",
+    "notes": [
+        "Use `CustomID` for interactive buttons that trigger events",
+        "Use `URL` for Link buttons that open external links",
+        "Buttons can include emojis for visual appeal",
+        "Set `Disabled: true` to show but prevent interaction"
+    ]
+}

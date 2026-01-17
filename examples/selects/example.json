@@ -1,0 +1,12 @@
+{
+    "id": "selects",
+    "title": "Select Menus",
+    "description": "Let users choose from dropdown lists. Discord provides several select types: String (custom options), User, Role, Channel, and Mentionable selects.",
+    "category": "components",
+    "notes": [
+        "StringSelect requires manual options array",
+        "UserSelect, RoleSelect, ChannelSelect auto-populate from server",
+        "Use MinValues/MaxValues to allow multiple selections",
+        "ChannelTypes can filter which channel types appear"
+    ]
+}

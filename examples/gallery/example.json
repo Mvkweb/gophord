@@ -1,0 +1,12 @@
+{
+    "id": "gallery",
+    "title": "Media Gallery",
+    "description": "Display multiple images in a grid layout. Media galleries support descriptions and can show up to 10 items.",
+    "category": "components",
+    "notes": [
+        "Each item has a Media URL and optional Description",
+        "Images are displayed in a responsive grid",
+        "Use for product showcases, portfolios, or multi-image content",
+        "Supports both image URLs and attachment references"
+    ]
+}

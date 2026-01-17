@@ -1,0 +1,52 @@
+{
+    "examples": [
+        {
+            "id": "buttons",
+            "title": "Button Components",
+            "description": "Create interactive buttons with different styles and behaviors.",
+            "category": "components"
+        },
+        {
+            "id": "selects",
+            "title": "Select Menus",
+            "description": "Let users choose from dropdown lists with string, user, role, and channel selects.",
+            "category": "components"
+        },
+        {
+            "id": "modals",
+            "title": "Modal Forms",
+            "description": "Display popup forms with text inputs, selects, and file uploads.",
+            "category": "interactions"
+        },
+        {
+            "id": "ephemeral",
+            "title": "Ephemeral Messages",
+            "description": "Send private messages that only the recipient can see.",
+            "category": "messages"
+        },
+        {
+            "id": "silent",
+            "title": "Silent Messages",
+            "description": "Send messages without triggering notifications.",
+            "category": "messages"
+        },
+        {
+            "id": "containers",
+            "title": "Containers",
+            "description": "Group components with accent colors and visual organization.",
+            "category": "components"
+        },
+        {
+            "id": "gallery",
+            "title": "Media Gallery",
+            "description": "Display multiple images in a gallery layout.",
+            "category": "components"
+        },
+        {
+            "id": "sections",
+            "title": "Sections",
+            "description": "Create content sections with thumbnails or button accessories.",
+            "category": "components"
+        }
+    ]
+}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"go/ast"
@@ -13,11 +14,11 @@ import (
 )
 
 type DocPackage struct {
-	Name    string       `json:"name"`
-	Doc     string       `json:"doc"`
-	Structs []DocStruct  `json:"structs"`
-	Types   []DocType    `json:"types"`
-	Funcs   []DocFunc    `json:"funcs"`
+	Name    string      `json:"name"`
+	Doc     string      `json:"doc"`
+	Structs []DocStruct `json:"structs"`
+	Types   []DocType   `json:"types"`
+	Funcs   []DocFunc   `json:"funcs"`
 }
 
 type DocStruct struct {
@@ -43,24 +44,35 @@ type DocFunc struct {
 	Name      string `json:"name"`
 	Doc       string `json:"doc"`
 	Signature string `json:"signature"`
-	Recv      string `json:"recv,omitempty"` // Receiver if method
+	Recv      string `json:"recv,omitempty"`
+}
+
+type DocExample struct {
+	ID          string   `json:"id"`
+	Title       string   `json:"title"`
+	Description string   `json:"description"`
+	Category    string   `json:"category"`
+	Notes       []string `json:"notes,omitempty"`
+	Code        string   `json:"code"`
 }
 
 type Docs struct {
 	Packages []DocPackage `json:"packages"`
+	Examples []DocExample `json:"examples"`
 }
 
 func main() {
-	// Root of the repo (assuming running from repo root or cmd/docgen)
-	// We want to walk "pkg"
+	// Root of the repo
 	root := "./pkg"
+	examplesRoot := "./examples"
 	if _, err := os.Stat(root); os.IsNotExist(err) {
-		// Try going up if we are in cmd/docgen
 		root = "../../pkg"
+		examplesRoot = "../../examples"
 	}
 
-	docs := Docs{Packages: []DocPackage{}}
+	docs := Docs{Packages: []DocPackage{}, Examples: []DocExample{}}
 
+	// Parse packages
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -68,21 +80,17 @@ func main() {
 		if !info.IsDir() {
 			return nil
 		}
-		// Skip root pkg dir itself
 		if path == root {
 			return nil
 		}
 
-		// Parse the directory
 		fset := token.NewFileSet()
 		pkgs, err := parser.ParseDir(fset, path, nil, parser.ParseComments)
 		if err != nil {
-			return nil // Skip unparsable
+			return nil
 		}
 
 		for _, pkg := range pkgs {
-			// We only want the package that matches the directory name usually, or the main one
-			// Use go/doc to get nice docs
 			d := doc.New(pkg, path, 0)
 
 			p := DocPackage{
@@ -93,13 +101,10 @@ func main() {
 				Funcs:   []DocFunc{},
 			}
 
-			// Process Types (Structs and others)
 			for _, t := range d.Types {
-				// Check if it's a struct
 				isStruct := false
 				var fields []DocField
 
-				// Find the AST declaration to check implementation details not in doc.Type
 				for _, spec := range t.Decl.Specs {
 					if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 						if typeSpec.Name.Name == t.Name {
@@ -111,14 +116,12 @@ func main() {
 										if len(field.Names) > 0 {
 											fieldName = field.Names[0].Name
 										} else {
-											// Embedded field
 											fieldName = fmt.Sprintf("%s", field.Type)
 											if idx := strings.LastIndex(fieldName, "."); idx != -1 {
 												fieldName = fieldName[idx+1:]
 											}
 										}
-										
-										// Get type string (simplified)
+
 										typeStr := "unknown"
 										if ident, ok := field.Type.(*ast.Ident); ok {
 											typeStr = ident.Name
@@ -150,13 +153,12 @@ func main() {
 									}
 								}
 							} else {
-                                // It's a type alias or other type
-                                p.Types = append(p.Types, DocType{
-                                    Name: t.Name,
-                                    Doc: strings.TrimSpace(t.Doc),
-                                    Type: "type alias", // Simplified
-                                })
-                            }
+								p.Types = append(p.Types, DocType{
+									Name: t.Name,
+									Doc:  strings.TrimSpace(t.Doc),
+									Type: "type alias",
+								})
+							}
 						}
 					}
 				}
@@ -168,24 +170,22 @@ func main() {
 						Fields: fields,
 					})
 				}
-                
-                // Methods for this type
-                for _, m := range t.Methods {
-                     p.Funcs = append(p.Funcs, DocFunc{
-                         Name: m.Name,
-                         Doc: strings.TrimSpace(m.Doc),
-                         Recv: t.Name,
-                         Signature: fmt.Sprintf("func (%s) %s", t.Name, m.Name), // simplified signature
-                     })
-                }
+
+				for _, m := range t.Methods {
+					p.Funcs = append(p.Funcs, DocFunc{
+						Name:      m.Name,
+						Doc:       strings.TrimSpace(m.Doc),
+						Recv:      t.Name,
+						Signature: fmt.Sprintf("func (%s) %s", t.Name, m.Name),
+					})
+				}
 			}
 
-			// Process Standalone Funcs
 			for _, f := range d.Funcs {
 				p.Funcs = append(p.Funcs, DocFunc{
 					Name:      f.Name,
 					Doc:       strings.TrimSpace(f.Doc),
-					Signature: fmt.Sprintf("func %s", f.Name), // simplified
+					Signature: fmt.Sprintf("func %s", f.Name),
 				})
 			}
 
@@ -199,22 +199,21 @@ func main() {
 		panic(err)
 	}
 
+	// Extract examples
+	docs.Examples = extractExamples(examplesRoot)
+
 	// Output to JSON
-	// Check where to save
-	outputPath := "../../docs.json" // Default relative to cmd/docgen
-    if _, err := os.Stat("package.json"); err == nil {
-        // If we happen to be in frontend root (unlikely for go run, but possible), just docs.json
-        outputPath = "docs.json"
-    } else if _, err := os.Stat("gophord.go"); err == nil {
-        // In backend root
-        outputPath = "../docs.json"
-    }
+	outputPath := "../../docs.json"
+	if _, err := os.Stat("package.json"); err == nil {
+		outputPath = "docs.json"
+	} else if _, err := os.Stat("gophord.go"); err == nil {
+		outputPath = "../docs.json"
+	}
 
 	f, err := os.Create(outputPath)
 	if err != nil {
 		fmt.Printf("Error creating file relative path %s: %v\n", outputPath, err)
-        // Fallback to absolute path or just print
-        return
+		return
 	}
 	defer f.Close()
 
@@ -223,6 +222,92 @@ func main() {
 	if err := enc.Encode(docs); err != nil {
 		panic(err)
 	}
-    
-    fmt.Printf("Generated docs.json at %s with %d packages\n", outputPath, len(docs.Packages))
+
+	fmt.Printf("Generated docs.json at %s with %d packages, %d examples\n", outputPath, len(docs.Packages), len(docs.Examples))
+}
+
+// extractExamples reads example folders and extracts code between DOC:START and DOC:END
+func extractExamples(examplesRoot string) []DocExample {
+	var examples []DocExample
+
+	// Read examples.json manifest
+	manifestPath := filepath.Join(examplesRoot, "examples.json")
+	manifestData, err := os.ReadFile(manifestPath)
+	if err != nil {
+		fmt.Printf("No examples.json found at %s: %v\n", manifestPath, err)
+		return examples
+	}
+
+	var manifest struct {
+		Examples []struct {
+			ID          string `json:"id"`
+			Title       string `json:"title"`
+			Description string `json:"description"`
+			Category    string `json:"category"`
+		} `json:"examples"`
+	}
+	if err := json.Unmarshal(manifestData, &manifest); err != nil {
+		fmt.Printf("Error parsing examples.json: %v\n", err)
+		return examples
+	}
+
+	for _, ex := range manifest.Examples {
+		exampleDir := filepath.Join(examplesRoot, ex.ID)
+
+		// Read example.json for notes
+		var notes []string
+		exampleJsonPath := filepath.Join(exampleDir, "example.json")
+		if data, err := os.ReadFile(exampleJsonPath); err == nil {
+			var exMeta struct {
+				Notes []string `json:"notes"`
+			}
+			if json.Unmarshal(data, &exMeta) == nil {
+				notes = exMeta.Notes
+			}
+		}
+
+		// Extract code from main.go between DOC:START and DOC:END
+		code := extractDocCode(filepath.Join(exampleDir, "main.go"))
+
+		examples = append(examples, DocExample{
+			ID:          ex.ID,
+			Title:       ex.Title,
+			Description: ex.Description,
+			Category:    ex.Category,
+			Notes:       notes,
+			Code:        code,
+		})
+	}
+
+	return examples
+}
+
+// extractDocCode extracts code between // DOC:START and // DOC:END markers
+func extractDocCode(filePath string) string {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+
+	var lines []string
+	inDocSection := false
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.Contains(line, "// DOC:START") {
+			inDocSection = true
+			continue
+		}
+		if strings.Contains(line, "// DOC:END") {
+			inDocSection = false
+			continue
+		}
+		if inDocSection {
+			lines = append(lines, line)
+		}
+	}
+
+	return strings.Join(lines, "\n")
 }

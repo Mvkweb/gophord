@@ -1,0 +1,12 @@
+{
+    "id": "containers",
+    "title": "Containers",
+    "description": "Group components with accent colors for visual organization. Containers display a colored bar on the left side to draw attention.",
+    "category": "components",
+    "notes": [
+        "AccentColor is a hex integer (e.g., 0x5865F2 for blurple)",
+        "Use for status messages: green=success, yellow=warning, red=error",
+        "Containers can hold any other components inside",
+        "Great for notifications, alerts, and grouped content"
+    ]
+}

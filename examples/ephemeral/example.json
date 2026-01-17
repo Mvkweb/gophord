@@ -1,0 +1,12 @@
+{
+    "id": "ephemeral",
+    "title": "Ephemeral Messages",
+    "description": "Send private messages that only the recipient can see. Ephemeral messages disappear when the user closes Discord and cannot be shared.",
+    "category": "messages",
+    "notes": [
+        "Only works with interaction responses (slash commands, buttons)",
+        "Cannot be used with regular SendMessage",
+        "Great for sensitive data, confirmations, and help text",
+        "Use RespondWithEphemeral or RespondWithEphemeralComponents"
+    ]
+}

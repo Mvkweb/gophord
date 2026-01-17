@@ -1,0 +1,12 @@
+{
+    "id": "modals",
+    "title": "Modal Forms",
+    "description": "Display popup forms that users can fill out. Modals can contain text inputs (short or paragraph) and select menus wrapped in Label components.",
+    "category": "interactions",
+    "notes": [
+        "Modals must be shown in response to an interaction (button click or slash command)",
+        "Use TextInput style 1 for short text, style 2 for paragraph",
+        "Wrap components in Label for proper modal rendering",
+        "Handle ModalSubmit interaction type to process responses"
+    ]
+}
