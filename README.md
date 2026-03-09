@@ -1,5 +1,14 @@
 # Gophord
 
+<p align="center">
+  <a href="https://go.dev">
+    <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/built-with/go_vector.svg" alt="Built with Go" height="48">
+  </a>
+  <a href="https://github.com/gophord/gophord#readme">
+    <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/documentation/website_vector.svg" alt="Documentation" height="48">
+  </a>
+</p>
+
 A high-performance, idiomatic Go library for interacting with the Discord API. Built with senior-level code quality, optimized JSON serialization using `bytedance/sonic`, and comprehensive Discord API v10+ support.
 
 ## Features

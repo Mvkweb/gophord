@@ -1,95 +1,120 @@
-// Package json provides high-performance JSON marshaling/unmarshaling using bytedance/sonic.
-//
-// This package wraps bytedance/sonic to provide a consistent JSON interface
-// throughout the gophord library. Sonic provides significantly better performance
-// than encoding/json through JIT compilation and SIMD acceleration.
-//
-// Usage:
-//
-//	data, err := json.Marshal(myStruct)
-//	err := json.Unmarshal(data, &myStruct)
 package json
 
 import (
-	stdjson "encoding/json"
+	"encoding/json"
+	"fmt"
 	"reflect"
-
-	"github.com/bytedance/sonic"
-	"github.com/bytedance/sonic/ast"
 )
 
-// Marshal returns the JSON encoding of v using sonic.
-// This is significantly faster than encoding/json.Marshal.
+// Marshal returns the JSON encoding of v using encoding/json.
 func Marshal(v interface{}) ([]byte, error) {
-	return sonic.Marshal(v)
+	return json.Marshal(v)
 }
 
-// MarshalString returns the JSON encoding of v as a string using sonic.
+// MarshalString returns the JSON encoding of v as a string using encoding/json.
 func MarshalString(v interface{}) (string, error) {
-	return sonic.MarshalString(v)
+	data, err := json.Marshal(v)
+	return string(data), err
 }
 
 // MarshalIndent returns the indented JSON encoding of v.
 func MarshalIndent(v interface{}, prefix, indent string) ([]byte, error) {
-	// sonic doesn't have MarshalIndent, use standard library
-	return stdjson.MarshalIndent(v, prefix, indent)
+	return json.MarshalIndent(v, prefix, indent)
 }
 
-// Unmarshal parses the JSON-encoded data and stores the result in v using sonic.
-// This is significantly faster than encoding/json.Unmarshal.
+// Unmarshal parses the JSON-encoded data and stores the result in v using encoding/json.
 func Unmarshal(data []byte, v interface{}) error {
-	return sonic.Unmarshal(data, v)
+	return json.Unmarshal(data, v)
 }
 
 // UnmarshalString parses the JSON-encoded string and stores the result in v.
 func UnmarshalString(s string, v interface{}) error {
-	return sonic.UnmarshalString(s, v)
+	return json.Unmarshal([]byte(s), v)
 }
 
 // Valid reports whether data is a valid JSON encoding.
 func Valid(data []byte) bool {
-	return sonic.Valid(data)
+	var v interface{}
+	return json.Unmarshal(data, &v) == nil
+}
+
+// Node is a placeholder for sonic.ast.Node compatibility.
+type Node struct {
+	val interface{}
+}
+
+func (n Node) String() string {
+	if s, ok := n.val.(string); ok {
+		return s
+	}
+	return fmt.Sprintf("%v", n.val)
+}
+
+func (n Node) Int64() (int64, error) {
+	switch v := n.val.(type) {
+	case int64:
+		return v, nil
+	case float64:
+		return int64(v), nil
+	case int:
+		return int64(v), nil
+	default:
+		return 0, fmt.Errorf("not an integer: %T", n.val)
+	}
+}
+
+func (n Node) Bool() (bool, error) {
+	if b, ok := n.val.(bool); ok {
+		return b, nil
+	}
+	return false, fmt.Errorf("not a boolean: %T", n.val)
+}
+
+func (n Node) MarshalJSON() ([]byte, error) {
+	return json.Marshal(n.val)
 }
 
 // Get extracts a value from JSON data using a path.
-// This is useful for partial JSON parsing when you only need specific fields.
-//
-// Example:
-//
-//	node, err := json.Get(data, "user", "name")
-//	name := node.String()
-func Get(data []byte, path ...interface{}) (ast.Node, error) {
-	return sonic.Get(data, path...)
+// This is a simplified shim for sonic.Get.
+func Get(data []byte, path ...interface{}) (Node, error) {
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return Node{}, err
+	}
+
+	curr := v
+	for _, p := range path {
+		switch key := p.(type) {
+		case string:
+			if m, ok := curr.(map[string]interface{}); ok {
+				curr = m[key]
+			} else {
+				return Node{}, fmt.Errorf("not a map at key %s", key)
+			}
+		case int:
+			if a, ok := curr.([]interface{}); ok {
+				if key >= 0 && key < len(a) {
+					curr = a[key]
+				} else {
+					return Node{}, fmt.Errorf("index out of range: %d", key)
+				}
+			} else {
+				return Node{}, fmt.Errorf("not a slice at index %d", key)
+			}
+		default:
+			return Node{}, fmt.Errorf("unsupported path type: %T", p)
+		}
+	}
+
+	return Node{val: curr}, nil
 }
 
 // GetFromString extracts a value from a JSON string using a path.
-func GetFromString(s string, path ...interface{}) (ast.Node, error) {
-	return sonic.GetFromString(s, path...)
+func GetFromString(s string, path ...interface{}) (Node, error) {
+	return Get([]byte(s), path...)
 }
 
-// ConfigDefault is the default sonic configuration.
-var ConfigDefault = sonic.ConfigDefault
-
-// ConfigStd provides encoding/json compatible behavior.
-var ConfigStd = sonic.ConfigStd
-
-// ConfigFastest provides the fastest encoding/decoding at the cost of some compatibility.
-var ConfigFastest = sonic.ConfigFastest
-
-// API provides a custom sonic API for advanced use cases.
-type API = sonic.API
-
-// Node represents a JSON value from partial parsing.
-type Node = ast.Node
-
-// Pretouch pre-compiles the encoder/decoder for a type.
-// This is recommended for large types to improve first-call performance.
-//
-// Example:
-//
-//	func init() {
-//		json.Pretouch(reflect.TypeOf(MyLargeStruct{}))
-//	}
+// Pretouch is a no-op shim for sonic.Pretouch.
 func Pretouch(t reflect.Type) error {
-	return sonic.Pretouch(t)
+	return nil
 }

@@ -4,8 +4,6 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-
-	"github.com/bytedance/sonic"
 )
 
 // componentJSON is used for JSON marshaling/unmarshaling of components.
@@ -16,7 +14,7 @@ type componentJSON struct {
 // MarshalJSON implements json.Marshaler for ActionRow.
 func (a *ActionRow) MarshalJSON() ([]byte, error) {
 	type actionRowAlias ActionRow
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*actionRowAlias
 	}{
@@ -28,7 +26,7 @@ func (a *ActionRow) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for Button.
 func (b *Button) MarshalJSON() ([]byte, error) {
 	type buttonAlias Button
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*buttonAlias
 	}{
@@ -40,7 +38,7 @@ func (b *Button) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for StringSelect.
 func (s *StringSelect) MarshalJSON() ([]byte, error) {
 	type stringSelectAlias StringSelect
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*stringSelectAlias
 	}{
@@ -52,7 +50,7 @@ func (s *StringSelect) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for UserSelect.
 func (u *UserSelect) MarshalJSON() ([]byte, error) {
 	type userSelectAlias UserSelect
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*userSelectAlias
 	}{
@@ -64,7 +62,7 @@ func (u *UserSelect) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for RoleSelect.
 func (r *RoleSelect) MarshalJSON() ([]byte, error) {
 	type roleSelectAlias RoleSelect
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*roleSelectAlias
 	}{
@@ -76,7 +74,7 @@ func (r *RoleSelect) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for MentionableSelect.
 func (m *MentionableSelect) MarshalJSON() ([]byte, error) {
 	type mentionableSelectAlias MentionableSelect
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*mentionableSelectAlias
 	}{
@@ -88,7 +86,7 @@ func (m *MentionableSelect) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for ChannelSelect.
 func (c *ChannelSelect) MarshalJSON() ([]byte, error) {
 	type channelSelectAlias ChannelSelect
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*channelSelectAlias
 	}{
@@ -100,7 +98,7 @@ func (c *ChannelSelect) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for Section.
 func (s *Section) MarshalJSON() ([]byte, error) {
 	type sectionAlias Section
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*sectionAlias
 	}{
@@ -112,7 +110,7 @@ func (s *Section) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for TextDisplay.
 func (t *TextDisplay) MarshalJSON() ([]byte, error) {
 	type textDisplayAlias TextDisplay
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*textDisplayAlias
 	}{
@@ -124,7 +122,7 @@ func (t *TextDisplay) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for Thumbnail.
 func (t *Thumbnail) MarshalJSON() ([]byte, error) {
 	type thumbnailAlias Thumbnail
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*thumbnailAlias
 	}{
@@ -136,7 +134,7 @@ func (t *Thumbnail) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for MediaGallery.
 func (m *MediaGallery) MarshalJSON() ([]byte, error) {
 	type mediaGalleryAlias MediaGallery
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*mediaGalleryAlias
 	}{
@@ -148,7 +146,7 @@ func (m *MediaGallery) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for File.
 func (f *File) MarshalJSON() ([]byte, error) {
 	type fileAlias File
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*fileAlias
 	}{
@@ -160,7 +158,7 @@ func (f *File) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for Separator.
 func (s *Separator) MarshalJSON() ([]byte, error) {
 	type separatorAlias Separator
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*separatorAlias
 	}{
@@ -172,7 +170,7 @@ func (s *Separator) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for Container.
 func (c *Container) MarshalJSON() ([]byte, error) {
 	type containerAlias Container
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*containerAlias
 	}{
@@ -184,7 +182,7 @@ func (c *Container) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for TextInput.
 func (t *TextInput) MarshalJSON() ([]byte, error) {
 	type textInputAlias TextInput
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*textInputAlias
 	}{
@@ -196,7 +194,7 @@ func (t *TextInput) MarshalJSON() ([]byte, error) {
 // MarshalJSON implements json.Marshaler for Label.
 func (i *Label) MarshalJSON() ([]byte, error) {
 	type labelAlias Label
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*labelAlias
 	}{
@@ -216,7 +214,7 @@ func (l *Label) UnmarshalJSON(data []byte) error {
 		labelAlias: (*labelAlias)(l),
 	}
 
-	if err := sonic.Unmarshal(data, aux); err != nil {
+	if err := json.Unmarshal(data, aux); err != nil {
 		return fmt.Errorf("failed to unmarshal label: %w", err)
 	}
 
@@ -242,7 +240,7 @@ func (s *Section) UnmarshalJSON(data []byte) error {
 		sectionAlias: (*sectionAlias)(s),
 	}
 
-	if err := sonic.Unmarshal(data, aux); err != nil {
+	if err := json.Unmarshal(data, aux); err != nil {
 		return fmt.Errorf("failed to unmarshal section: %w", err)
 	}
 
@@ -260,7 +258,7 @@ func (s *Section) UnmarshalJSON(data []byte) error {
 // MarshalJSON implements json.Marshaler for FileUpload.
 func (f *FileUpload) MarshalJSON() ([]byte, error) {
 	type fileUploadAlias FileUpload
-	return sonic.Marshal(&struct {
+	return json.Marshal(&struct {
 		Type ComponentType `json:"type"`
 		*fileUploadAlias
 	}{
@@ -283,7 +281,7 @@ func (cl *ComponentList) UnmarshalJSON(data []byte) error {
 // It inspects the "type" field to determine which concrete type to use.
 func UnmarshalComponent(data []byte) (Component, error) {
 	var cj componentJSON
-	if err := sonic.Unmarshal(data, &cj); err != nil {
+	if err := json.Unmarshal(data, &cj); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal component type: %w", err)
 	}
 
@@ -327,7 +325,7 @@ func UnmarshalComponent(data []byte) (Component, error) {
 		return nil, fmt.Errorf("unknown component type: %d", cj.Type)
 	}
 
-	if err := sonic.Unmarshal(data, component); err != nil {
+	if err := json.Unmarshal(data, component); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal component: %w", err)
 	}
 
@@ -337,7 +335,7 @@ func UnmarshalComponent(data []byte) (Component, error) {
 // UnmarshalComponents unmarshals a slice of components from JSON data.
 func UnmarshalComponents(data []byte) ([]Component, error) {
 	var rawComponents []json.RawMessage
-	if err := sonic.Unmarshal(data, &rawComponents); err != nil {
+	if err := json.Unmarshal(data, &rawComponents); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal components array: %w", err)
 	}
 
