@@ -17,9 +17,9 @@
 //	    "context"
 //	    "log"
 //
-//	    "github.com/gophord/gophord/pkg/client"
-//	    "github.com/gophord/gophord/pkg/gateway"
-//	    "github.com/gophord/gophord/pkg/types"
+//	    "github.com/Mvkweb/gophord/pkg/client"
+//	    "github.com/Mvkweb/gophord/pkg/gateway"
+//	    "github.com/Mvkweb/gophord/pkg/types"
 //	)
 //
 //	func main() {
@@ -62,11 +62,11 @@
 //
 // The library is organized into several packages:
 //
-//   - [github.com/gophord/gophord/pkg/types] - Core Discord type definitions
-//   - [github.com/gophord/gophord/pkg/client] - High-level Discord client
-//   - [github.com/gophord/gophord/pkg/rest] - REST API client
-//   - [github.com/gophord/gophord/pkg/gateway] - WebSocket gateway client
-//   - [github.com/gophord/gophord/pkg/json] - High-performance JSON utilities
+//   - [github.com/Mvkweb/gophord/pkg/types] - Core Discord type definitions
+//   - [github.com/Mvkweb/gophord/pkg/client] - High-level Discord client
+//   - [github.com/Mvkweb/gophord/pkg/rest] - REST API client
+//   - [github.com/Mvkweb/gophord/pkg/gateway] - WebSocket gateway client
+//   - [github.com/Mvkweb/gophord/pkg/json] - High-performance JSON utilities
 //
 // # Documentation
 //
@@ -78,11 +78,11 @@ package gophord
 
 import (
 	// Re-export main packages for convenience
-	_ "github.com/gophord/gophord/pkg/client"
-	_ "github.com/gophord/gophord/pkg/gateway"
-	_ "github.com/gophord/gophord/pkg/json"
-	_ "github.com/gophord/gophord/pkg/rest"
-	_ "github.com/gophord/gophord/pkg/types"
+	_ "github.com/Mvkweb/gophord/pkg/client"
+	_ "github.com/Mvkweb/gophord/pkg/gateway"
+	_ "github.com/Mvkweb/gophord/pkg/json"
+	_ "github.com/Mvkweb/gophord/pkg/rest"
+	_ "github.com/Mvkweb/gophord/pkg/types"
 )
 
 // Version is the library version.

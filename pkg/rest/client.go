@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gophord/gophord/pkg/json"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/json"
+	"github.com/Mvkweb/gophord/pkg/types"
 )
 
 // Client is a REST client for the Discord API.
@@ -62,7 +62,7 @@ func New(token string, opts ...ClientOption) *Client {
 		token:       token,
 		httpClient:  &http.Client{Timeout: 30 * time.Second},
 		baseURL:     types.BaseURL,
-		userAgent:   "DiscordBot (https://github.com/gophord/gophord, 1.0.0)",
+		userAgent:   "DiscordBot (https://github.com/Mvkweb/gophord, 1.0.0)",
 		rateLimiter: NewRateLimiter(),
 	}
 

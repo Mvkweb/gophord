@@ -9,9 +9,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/gophord/gophord/pkg/client"
-	"github.com/gophord/gophord/pkg/gateway"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/client"
+	"github.com/Mvkweb/gophord/pkg/gateway"
+	"github.com/Mvkweb/gophord/pkg/types"
 )
 
 // DOC:START

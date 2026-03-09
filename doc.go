@@ -11,13 +11,13 @@
 //
 // # Installation
 //
-//	go get github.com/gophord/gophord
+//	go get github.com/Mvkweb/gophord
 //
 // # Basic Usage
 //
 //	import (
-//	    "github.com/gophord/gophord/pkg/client"
-//	    "github.com/gophord/gophord/pkg/types"
+//	    "github.com/Mvkweb/gophord/pkg/client"
+//	    "github.com/Mvkweb/gophord/pkg/types"
 //	)
 //
 //	func main() {

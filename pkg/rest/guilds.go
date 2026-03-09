@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gophord/gophord/pkg/json"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/json"
+	"github.com/Mvkweb/gophord/pkg/types"
 )
 
 // CreateGuildParams contains parameters for creating a guild.

@@ -23,10 +23,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/gophord/gophord/pkg/client"
-	"github.com/gophord/gophord/pkg/gateway"
-	"github.com/gophord/gophord/pkg/rest"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/client"
+	"github.com/Mvkweb/gophord/pkg/gateway"
+	"github.com/Mvkweb/gophord/pkg/rest"
+	"github.com/Mvkweb/gophord/pkg/types"
 	godotenv "github.com/joho/godotenv"
 )
 
@@ -513,17 +513,6 @@ func handleSection(ctx context.Context, bot *client.Client, event *gateway.Messa
 		).
 		Build()
 
-	// Manually add a Premium button since there is no helper yet
-	premiumSKU := types.Snowflake(123456789)
-	components = append(components, &types.ActionRow{
-		Components: types.ComponentList{
-			&types.Button{
-				Style: types.ButtonStylePremium,
-				SKUID: &premiumSKU,
-			},
-		},
-	})
-
 	_, err := bot.SendMessageWithComponents(ctx, event.ChannelID, components)
 	if err != nil {
 		log.Printf("Failed to send section message: %v", err)
@@ -621,16 +610,6 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 					},
 				).
 				Build()
-
-			premiumSKU := types.Snowflake(123456789)
-			components = append(components, &types.ActionRow{
-				Components: types.ComponentList{
-					&types.Button{
-						Style: types.ButtonStylePremium,
-						SKUID: &premiumSKU,
-					},
-				},
-			})
 
 			err := bot.RespondWithComponents(ctx, interaction, components)
 			if err != nil {

@@ -20,10 +20,10 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/gophord/gophord/pkg/client"
-	"github.com/gophord/gophord/pkg/gateway"
-	"github.com/gophord/gophord/pkg/rest"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/client"
+	"github.com/Mvkweb/gophord/pkg/gateway"
+	"github.com/Mvkweb/gophord/pkg/rest"
+	"github.com/Mvkweb/gophord/pkg/types"
 )
 
 func main() {
@@ -108,7 +108,7 @@ func sendButtonsDemo(ctx context.Context, restClient *rest.Client, channelID typ
 		},
 		&types.ActionRow{
 			Components: []types.Component{
-				&types.Button{Style: types.ButtonStyleLink, URL: "https://github.com/gophord/gophord", Label: "GitHub"},
+				&types.Button{Style: types.ButtonStyleLink, URL: "https://github.com/Mvkweb/gophord", Label: "GitHub"},
 				&types.Button{Style: types.ButtonStylePrimary, CustomID: "demo_emoji", Label: "With Emoji", Emoji: &types.PartialEmoji{Name: "🚀"}},
 				&types.Button{Style: types.ButtonStyleSecondary, CustomID: "demo_disabled", Label: "Disabled", Disabled: true},
 			},

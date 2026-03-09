@@ -2,8 +2,8 @@
 package gateway
 
 import (
-	"github.com/gophord/gophord/pkg/json"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/json"
+	"github.com/Mvkweb/gophord/pkg/types"
 )
 
 // Event type constants for gateway events.

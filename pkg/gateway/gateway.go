@@ -11,8 +11,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gophord/gophord/pkg/json"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/json"
+	"github.com/Mvkweb/gophord/pkg/types"
 	"github.com/lxzan/gws"
 )
 
@@ -178,7 +178,7 @@ func (c *Client) Connect(ctx context.Context) error {
 	}
 
 	conn, _, err := gws.NewClient(c, &gws.ClientOption{
-		Addr:             url,
+		Addr: url,
 		PermessageDeflate: gws.PermessageDeflate{
 			Enabled:               true,
 			ServerContextTakeover: true,
@@ -237,9 +237,18 @@ func (c *Client) OnOpen(socket *gws.Conn) {
 
 // OnClose implements gws.EventHandler.
 func (c *Client) OnClose(socket *gws.Conn, err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.closed {
+		return
+	}
+	c.closed = true
+
 	select {
-	case c.done <- struct{}{}:
+	case <-c.done:
 	default:
+		close(c.done)
 	}
 }
 

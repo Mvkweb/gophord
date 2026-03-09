@@ -7,9 +7,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/gophord/gophord/pkg/client"
-	"github.com/gophord/gophord/pkg/gateway"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/client"
+	"github.com/Mvkweb/gophord/pkg/gateway"
+	"github.com/Mvkweb/gophord/pkg/types"
 )
 
 // DOC:START
@@ -31,7 +31,7 @@ func sendButtonsDemo(ctx context.Context, bot *client.Client, channelID types.Sn
 		).
 		AddActionRow(
 			// Link button - Opens URL in browser
-			client.NewLinkButton("https://github.com/gophord/gophord", "GitHub"),
+			client.NewLinkButton("https://github.com/Mvkweb/gophord", "GitHub"),
 			// Button with emoji
 			&types.Button{
 				Style:    types.ButtonStylePrimary,

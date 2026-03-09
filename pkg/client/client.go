@@ -9,10 +9,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gophord/gophord/pkg/gateway"
-	"github.com/gophord/gophord/pkg/json"
-	"github.com/gophord/gophord/pkg/rest"
-	"github.com/gophord/gophord/pkg/types"
+	"github.com/Mvkweb/gophord/pkg/gateway"
+	"github.com/Mvkweb/gophord/pkg/json"
+	"github.com/Mvkweb/gophord/pkg/rest"
+	"github.com/Mvkweb/gophord/pkg/types"
 )
 
 // Client is a high-level Discord client.

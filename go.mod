@@ -1,4 +1,4 @@
-module github.com/gophord/gophord
+module github.com/Mvkweb/gophord
 
 go 1.22
 
