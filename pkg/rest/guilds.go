@@ -12,18 +12,18 @@ import (
 
 // CreateGuildParams contains parameters for creating a guild.
 type CreateGuildParams struct {
-	Name                        string                    `json:"name"`
-	Region                      string                    `json:"region,omitempty"`
-	Icon                        string                    `json:"icon,omitempty"`
-	VerificationLevel           int                       `json:"verification_level,omitempty"`
-	DefaultMessageNotifications int                       `json:"default_message_notifications,omitempty"`
-	ExplicitContentFilter       int                       `json:"explicit_content_filter,omitempty"`
-	Roles                       []types.Role              `json:"roles,omitempty"`
+	Name                        string                      `json:"name"`
+	Region                      string                      `json:"region,omitempty"`
+	Icon                        string                      `json:"icon,omitempty"`
+	VerificationLevel           int                         `json:"verification_level,omitempty"`
+	DefaultMessageNotifications int                         `json:"default_message_notifications,omitempty"`
+	ExplicitContentFilter       int                         `json:"explicit_content_filter,omitempty"`
+	Roles                       []types.Role                `json:"roles,omitempty"`
 	Channels                    []types.CreateChannelParams `json:"channels,omitempty"`
-	AFKChannelID                types.Snowflake           `json:"afk_channel_id,omitempty"`
-	AFKTimeout                  int                       `json:"afk_timeout,omitempty"`
-	SystemChannelID             types.Snowflake           `json:"system_channel_id,omitempty"`
-	SystemChannelFlags          int                       `json:"system_channel_flags,omitempty"`
+	AFKChannelID                types.Snowflake             `json:"afk_channel_id,omitempty"`
+	AFKTimeout                  int                         `json:"afk_timeout,omitempty"`
+	SystemChannelID             types.Snowflake             `json:"system_channel_id,omitempty"`
+	SystemChannelFlags          int                         `json:"system_channel_flags,omitempty"`
 }
 
 // CreateGuild creates a new guild.
@@ -192,7 +192,7 @@ type ListGuildMembersParams struct {
 // ListGuildMembers returns a list of guild members.
 func (c *Client) ListGuildMembers(ctx context.Context, guildID types.Snowflake, params *ListGuildMembersParams) ([]types.GuildMember, error) {
 	path := fmt.Sprintf("/guilds/%s/members", guildID)
-	
+
 	query := make(map[string]string)
 	if params != nil {
 		if params.Limit > 0 {
