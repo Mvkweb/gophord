@@ -86,6 +86,10 @@ func main() {
 			handleComponents(ctx, bot, event)
 		case command == "!container":
 			handleContainer(ctx, bot, event)
+		case command == "!gallery":
+			handleGallery(ctx, bot, event)
+		case command == "!section":
+			handleSection(ctx, bot, event)
 		case command == "!help":
 			handleHelp(ctx, bot, event)
 		case command == "!silent" && len(args) > 1:
@@ -123,6 +127,14 @@ func main() {
 			{
 				Name:        "modal",
 				Description: "Open a test modal",
+			},
+			{
+				Name:        "gallery",
+				Description: "See a media gallery and file attachment demo",
+			},
+			{
+				Name:        "section",
+				Description: "See a section component demo",
 			},
 		}
 
@@ -460,11 +472,69 @@ func handleContainer(ctx context.Context, bot *client.Client, event *gateway.Mes
 	}
 }
 
+func handleGallery(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
+	components := client.NewComponentBuilder().
+		AddTextDisplay("# Media Gallery & File Demo").
+		AddMediaGallery(
+			types.MediaGalleryItem{
+				Media:       types.UnfurledMediaItem{URL: "https://http.cat/200.jpg"},
+				Description: "HTTP 200 OK",
+			},
+			types.MediaGalleryItem{
+				Media:       types.UnfurledMediaItem{URL: "https://http.cat/404.jpg"},
+				Description: "HTTP 404 Not Found",
+			},
+		).
+		AddSeparator(true, types.SeparatorSpacingLarge).
+		Build()
+
+	// Currently no helper for adding File components to Builder, so we manually append
+	components = append(components, &types.File{
+		File: types.UnfurledMediaItem{URL: "https://http.cat/500"},
+		Name: "error.txt",
+		Size: 1024,
+	})
+
+	_, err := bot.SendMessageWithComponents(ctx, event.ChannelID, components)
+	if err != nil {
+		log.Printf("Failed to send gallery message: %v", err)
+	}
+}
+
+func handleSection(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
+	components := client.NewComponentBuilder().
+		AddTextDisplay("# Section Demo").
+		AddSection(
+			"Here is an example of a **Section** layout component, accompanied by a Thumbnail accessory.",
+			&types.Thumbnail{
+				Media:       types.UnfurledMediaItem{URL: "https://http.cat/418.jpg"},
+				Description: "I'm a teapot",
+			},
+		).
+		Build()
+
+	// Manually add a Premium button since there is no helper yet
+	premiumSKU := types.Snowflake(123456789)
+	components = append(components, &types.ActionRow{
+		Components: types.ComponentList{
+			&types.Button{
+				Style: types.ButtonStylePremium,
+				SKUID: &premiumSKU,
+			},
+		},
+	})
+
+	_, err := bot.SendMessageWithComponents(ctx, event.ChannelID, components)
+	if err != nil {
+		log.Printf("Failed to send section message: %v", err)
+	}
+}
+
 func handleHelp(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
 	components := client.NewComponentBuilder().
 		AddTextDisplay("# Gophord Bot Help").
 		AddTextDisplay("Available commands:").
-		AddTextDisplay("- `!ping` - Check if the bot is responsive\n- `!hello` - Get a greeting with interactive buttons\n- `!kick <user_id>` - Kick a user from the server\n- `!webhook <name>` - Create and test a webhook\n- `!components` - See Components V2 features demo\n- `!container` - See a container with accent color\n- `!help` - Show this help message").
+		AddTextDisplay("- `!ping` - Check if the bot is responsive\n- `!hello` - Get a greeting with interactive buttons\n- `!kick <user_id>` - Kick a user from the server\n- `!webhook <name>` - Create and test a webhook\n- `!components` - See Components V2 features demo\n- `!container` - See a container with accent color\n- `!gallery` - See a media gallery and file attachment demo\n- `!section` - See a section component demo\n- `!help` - Show this help message").
 		AddSeparator(true, types.SeparatorSpacingSmall).
 		AddTextDisplay("-# Powered by gophord - A high-performance Go Discord library").
 		Build()
@@ -514,6 +584,58 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 			}
 		} else if interaction.Data.Name == "modal" {
 			handleModalDemo(ctx, bot, interaction)
+		} else if interaction.Data.Name == "gallery" {
+			components := client.NewComponentBuilder().
+				AddTextDisplay("# Media Gallery & File Demo").
+				AddMediaGallery(
+					types.MediaGalleryItem{
+						Media:       types.UnfurledMediaItem{URL: "https://http.cat/200.jpg"},
+						Description: "HTTP 200 OK",
+					},
+					types.MediaGalleryItem{
+						Media:       types.UnfurledMediaItem{URL: "https://http.cat/404.jpg"},
+						Description: "HTTP 404 Not Found",
+					},
+				).
+				AddSeparator(true, types.SeparatorSpacingLarge).
+				Build()
+
+			components = append(components, &types.File{
+				File: types.UnfurledMediaItem{URL: "https://http.cat/500"},
+				Name: "error.txt",
+				Size: 1024,
+			})
+
+			err := bot.RespondWithComponents(ctx, interaction, components)
+			if err != nil {
+				log.Printf("Failed to respond to /gallery interaction: %v", err)
+			}
+		} else if interaction.Data.Name == "section" {
+			components := client.NewComponentBuilder().
+				AddTextDisplay("# Section Demo").
+				AddSection(
+					"Here is an example of a **Section** layout component, accompanied by a Thumbnail accessory.",
+					&types.Thumbnail{
+						Media:       types.UnfurledMediaItem{URL: "https://http.cat/418.jpg"},
+						Description: "I'm a teapot",
+					},
+				).
+				Build()
+
+			premiumSKU := types.Snowflake(123456789)
+			components = append(components, &types.ActionRow{
+				Components: types.ComponentList{
+					&types.Button{
+						Style: types.ButtonStylePremium,
+						SKUID: &premiumSKU,
+					},
+				},
+			})
+
+			err := bot.RespondWithComponents(ctx, interaction, components)
+			if err != nil {
+				log.Printf("Failed to respond to /section interaction: %v", err)
+			}
 		}
 		return
 	}
