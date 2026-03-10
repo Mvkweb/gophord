@@ -25,7 +25,7 @@ func GetSlashCommands() []types.CreateApplicationCommandParams {
 		},
 		{
 			Name:        "gallery",
-			Description: "See a media gallery and file attachment demo",
+			Description: "See a media gallery demo",
 		},
 		{
 			Name:        "section",
@@ -34,6 +34,10 @@ func GetSlashCommands() []types.CreateApplicationCommandParams {
 		{
 			Name:        "fileupload",
 			Description: "Open a modal with file upload component",
+		},
+		{
+			Name:        "premium",
+			Description: "See a premium button demo (requires SKU ID)",
 		},
 	}
 }

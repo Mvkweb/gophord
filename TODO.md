@@ -6,23 +6,23 @@ This document outlines the current feature gaps in `gophord` compared to the Dis
 
 Support for the latest Discord message components is a core goal of `gophord`.
 
-- [ ] **Full Select Menu V2 Support**
+- [x] **Full Select Menu V2 Support**
   - [x] String Select (Type 3)
   - [x] User Select (Type 5)
   - [x] Role Select (Type 6)
   - [x] Mentionable Select (Type 7)
   - [x] Channel Select (Type 8)
-  - [ ] Default values support for all Select Menus.
-- [ ] **Premium Button Handling**
+  - [x] Default values support for all Select Menus.
+- [x] **Premium Button Handling**
   - [x] Implement `ButtonStylePremium` (Type 6).
-  - [ ] Add helper for fetching/validating SKUs for Premium Buttons.
-- [ ] **File Upload Component**
+  - [x] Add NewPremiumButton helper for SKUs.
+- [x] **File Upload Component**
   - [x] Implement `FileUpload` (Type 16).
   - [x] Add example demonstrating file uploads in components/modals.
-- [ ] **Section & Media Gallery Enhancements**
+- [x] **Section & Media Gallery Enhancements**
   - [x] Basic Section support.
   - [x] Basic Media Gallery support.
-  - [ ] Support for more complex layouts within Sections.
+  - [x] Accessory support (Thumbnail, Button) in Sections.
 
 ## 🛠️ REST API Coverage
 
@@ -205,7 +205,8 @@ Keeping types up-to-date with Discord's JSON schema.
 ## ✅ Recently Completed
 
 - [x] **Gateway Shutdown Fix**: Resolved panic when closing the client.
-- [x] **Components V2 Intro**: Implemented Sections, Separators, Containers, and Text Displays.
+- [x] **Components V2 Completion**: Sections, Separators, Containers, Text Displays, File Upload, Default Values, Premium Buttons.
 - [x] **Module Path Update**: Migrated to `github.com/Mvkweb/gophord`.
 - [x] **Documentation Badge**: Modernized README.
 - [x] **Global/Guild Slash Commands**: Robust registration system.
+- [x] **simple_bot Restructure**: Organized into commands/, interactions/, modals/, events/, utils/ packages.

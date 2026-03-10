@@ -19,6 +19,7 @@ const (
 	CmdGallery    = "gallery"
 	CmdSection    = "section"
 	CmdFileUpload = "fileupload"
+	CmdPremium    = "premium"
 )
 
 // Button custom IDs - used to identify which button was clicked.

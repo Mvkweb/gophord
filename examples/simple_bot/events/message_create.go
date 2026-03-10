@@ -57,6 +57,8 @@ func OnMessageCreate(bot *client.Client) {
 			commands.HandlePurge(ctx, bot, event, args[1])
 		case command == "!fileupload":
 			commands.HandleFileUploadDemo(ctx, bot, event)
+		case command == "!premium":
+			commands.HandlePremium(ctx, bot, event)
 		}
 	})
 }

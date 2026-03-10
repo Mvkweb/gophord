@@ -13,6 +13,7 @@ import (
 	"github.com/Mvkweb/gophord/examples/simple_bot/modals"
 	"github.com/Mvkweb/gophord/examples/simple_bot/utils"
 	"github.com/Mvkweb/gophord/pkg/client"
+	"github.com/Mvkweb/gophord/pkg/gateway"
 	"github.com/Mvkweb/gophord/pkg/types"
 )
 
@@ -37,6 +38,8 @@ func HandleSlashCommand(ctx context.Context, bot *client.Client, interaction *ty
 		handleSectionSlash(ctx, bot, interaction)
 	case utils.CmdFileUpload:
 		modals.HandleFileUploadModal(ctx, bot, interaction)
+	case utils.CmdPremium:
+		handlePremiumSlash(ctx, bot, interaction)
 	}
 }
 
@@ -174,4 +177,18 @@ func handleSectionSlash(ctx context.Context, bot *client.Client, interaction *ty
 	if err != nil {
 		log.Printf("Failed to respond to /section interaction: %v", err)
 	}
+}
+
+// handlePremiumSlash handles the /premium slash command.
+func handlePremiumSlash(ctx context.Context, bot *client.Client, interaction *types.Interaction) {
+	if interaction.ChannelID == nil {
+		return
+	}
+
+	// Delegate to the commands handler which has the env var logic
+	commands.HandlePremium(ctx, bot, &gateway.MessageCreateEvent{
+		Message: types.Message{
+			ChannelID: *interaction.ChannelID,
+		},
+	})
 }

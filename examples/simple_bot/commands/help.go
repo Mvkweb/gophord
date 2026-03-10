@@ -38,6 +38,7 @@ func HandleHelp(ctx context.Context, bot *client.Client, event *gateway.MessageC
 				"- `!gallery` - See a media gallery demo\n"+
 				"- `!section` - See a section component demo\n"+
 				"- `!fileupload` - See file upload modal demo\n"+
+				"- `!premium` - See premium button demo\n"+
 				"- `!help` - Show this help message",
 		).
 		AddSeparator(true, types.SeparatorSpacingSmall).

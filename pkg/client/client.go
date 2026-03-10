@@ -485,6 +485,15 @@ func NewLinkButton(url, label string) *types.Button {
 	}
 }
 
+// NewPremiumButton creates a premium button for purchasing SKUs.
+// Premium buttons require a SKU ID and cannot have custom_id, label, url, or emoji.
+func NewPremiumButton(skuID types.Snowflake) *types.Button {
+	return &types.Button{
+		Style: types.ButtonStylePremium,
+		SKUID: &skuID,
+	}
+}
+
 // NewTextInput creates a new text input component.
 func NewTextInput(customID, label string, style int, opts ...func(*types.TextInput)) *types.TextInput {
 	ti := &types.TextInput{
@@ -568,6 +577,15 @@ func NewMentionableSelect(customID string) *types.MentionableSelect {
 func NewChannelSelect(customID string) *types.ChannelSelect {
 	return &types.ChannelSelect{
 		CustomID: customID,
+	}
+}
+
+// NewSelectDefaultValue creates a default value for auto-populated select menus.
+// The type should be "user", "role", or "channel".
+func NewSelectDefaultValue(id types.Snowflake, defaultType string) types.SelectDefaultValue {
+	return types.SelectDefaultValue{
+		ID:   id,
+		Type: defaultType,
 	}
 }
 
