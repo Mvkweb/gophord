@@ -27,3 +27,8 @@ Thumbs.db
 *.log
 logs/
 AGENTS.MD
+
+# Stuff
+context7.json
+llms.txt
+llms-full.txt
