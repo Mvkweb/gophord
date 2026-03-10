@@ -1,0 +1,51 @@
+# Gophord — Discord API Wrapper for Go
+
+> A fast, idiomatic Go library for Discord API v10+ with full Components V2
+> support, high-performance JSON via bytedance/sonic, automatic rate limiting,
+> and WebSocket gateway reconnection.
+
+## Install
+
+go get github.com/Mvkweb/gophord
+
+## Docs
+
+- [Getting Started](docs/getting-started.md): Installation, minimal bot, connect and handle first event
+- [Session & Client](docs/session.md): Client creation, options, lifecycle, Connect/Close
+- [Events](docs/events.md): OnReady, OnMessageCreate, OnInteractionCreate, all event types
+- [Gateway](docs/gateway.md): WebSocket connection, heartbeat, reconnection, resume
+- [Intents](docs/intents.md): All intent flags, privileged intents, IntentsDefault, IntentsAll
+- [Slash Commands](docs/commands.md): Register global/guild commands, command options, subcommands
+- [Interactions](docs/interactions.md): Slash commands, button clicks, select menus, modal submits, deferred responses
+- [Messages](docs/messages.md): Send, edit, delete, bulk delete, reply, silent messages
+- [Embeds](docs/embeds.md): Embed struct, fields, limits, color, footer, thumbnail, image
+- [Components V2](docs/components-v2.md): ComponentBuilder, TextDisplay, ActionRow, Separator, overview
+- [Buttons](docs/buttons.md): Primary, Secondary, Success, Danger, Link button styles
+- [Select Menus](docs/select-menus.md): String, User, Role, Channel, Mentionable selects
+- [Containers](docs/containers.md): Container component with accent color, grouping components
+- [Sections](docs/sections.md): Section with text and thumbnail/button accessory
+- [Media Galleries](docs/media-galleries.md): MediaGallery with multiple MediaGalleryItems
+- [Modals](docs/modals.md): ShowModal, TextInput styles, Label wrappers, modal submit handling
+- [Channels](docs/channels.md): Create, edit, delete channels, threads, forums, permission overwrites
+- [Guilds](docs/guilds.md): Guild operations, settings, audit log, scheduled events
+- [Roles](docs/roles.md): Create, edit, delete roles, role hierarchy, assignment
+- [Members](docs/members.md): Get, kick, ban, unban, add/remove roles
+- [Permissions](docs/permissions.md): Permission bitfields, checking, overwrites
+- [Voice](docs/voice.md): Voice connections, audio streaming
+- [Webhooks](docs/webhooks.md): Create, execute, edit, delete webhooks
+- [Reactions & Pins](docs/reactions.md): Add/remove reactions, pin/unpin messages
+- [REST API](docs/rest.md): Direct REST client usage, CreateMessageParams, EditMessageParams
+- [Rate Limiting](docs/rate-limiting.md): Automatic rate limit handling, 429 behavior
+- [Errors](docs/errors.md): REST error types, error codes, handling patterns
+- [Snowflake](docs/snowflake.md): Snowflake type, construction, timestamp extraction
+- [Presence](docs/presence.md): UpdatePresence, activity types, status, AFK
+- [Cache & State](docs/cache.md): State tracking, cached data access
+- [Sharding](docs/sharding.md): Multi-shard setup for large bots
+- [File Uploads](docs/files.md): Sending attachments and files with messages
+- [Threads](docs/threads.md): Thread creation, archiving, joining
+- [Migration](docs/migration.md): Version changes, upgrade guide
+
+## Optional
+
+- [GoDoc Reference](https://pkg.go.dev/github.com/Mvkweb/gophord)
+- [GitHub Repository](https://github.com/Mvkweb/gophord)
