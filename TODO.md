@@ -18,7 +18,7 @@ Support for the latest Discord message components is a core goal of `gophord`.
   - [ ] Add helper for fetching/validating SKUs for Premium Buttons.
 - [ ] **File Upload Component**
   - [x] Implement `FileUpload` (Type 16).
-  - [ ] Add example demonstrating file uploads in components/modals.
+  - [x] Add example demonstrating file uploads in components/modals.
 - [ ] **Section & Media Gallery Enhancements**
   - [x] Basic Section support.
   - [x] Basic Media Gallery support.

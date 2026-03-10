@@ -104,6 +104,8 @@ func main() {
 			handlePin(ctx, bot, event, args[1])
 		case command == "!purge" && len(args) > 1:
 			handlePurge(ctx, bot, event, args[1])
+		case command == "!fileupload":
+			handleFileUploadDemo(ctx, bot, event)
 		}
 	})
 
@@ -135,6 +137,10 @@ func main() {
 			{
 				Name:        "section",
 				Description: "See a section component demo",
+			},
+			{
+				Name:        "fileupload",
+				Description: "Open a modal with file upload component",
 			},
 		}
 
@@ -407,7 +413,12 @@ func handleModalSubmit(ctx context.Context, bot *client.Client, interaction *typ
 			case *types.MentionableSelect:
 				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
 			case *types.FileUpload:
-				results = append(results, fmt.Sprintf("**%s**: %v", inner.CustomID, inner.Values))
+				fileCount := len(inner.Values)
+				if fileCount > 0 {
+					results = append(results, fmt.Sprintf("**%s**: %d file(s) uploaded - IDs: `%v`", inner.CustomID, fileCount, inner.Values))
+				} else {
+					results = append(results, fmt.Sprintf("**%s**: No files uploaded", inner.CustomID))
+				}
 			}
 		}
 	}
@@ -519,11 +530,53 @@ func handleSection(ctx context.Context, bot *client.Client, event *gateway.Messa
 	}
 }
 
+func handleFileUploadDemo(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
+	components := client.NewComponentBuilder().
+		AddTextDisplay("# 📎 File Upload Demo").
+		AddTextDisplay("This demo shows how to use the **File Upload** component in modals.").
+		AddTextDisplay("Click the button below to open a modal where you can upload files!").
+		AddSeparator(true, types.SeparatorSpacingSmall).
+		AddActionRow(
+			client.NewPrimaryButton("open_file_modal", "Open File Upload Modal"),
+		).
+		Build()
+
+	_, err := bot.SendMessageWithComponents(ctx, event.ChannelID, components)
+	if err != nil {
+		log.Printf("Failed to send file upload demo message: %v", err)
+	}
+}
+
+func handleFileUploadModal(ctx context.Context, bot *client.Client, interaction *types.Interaction) {
+	components := client.NewComponentBuilder().
+		AddLabel(client.NewLabel("Title", "Enter a title for your file",
+			client.NewTextInput("title", "", 1,
+				client.WithPlaceholder("My awesome file"),
+				client.WithRequired(true),
+			),
+		)).
+		AddLabel(client.NewLabel("Description", "Describe what you're uploading",
+			client.NewTextInput("description", "", 2,
+				client.WithPlaceholder("This file contains..."),
+				client.WithMaxLength(500),
+			),
+		)).
+		AddLabel(client.NewLabel("Upload File", "Select a file to upload",
+			client.NewFileUpload("file_upload"),
+		)).
+		Build()
+
+	err := bot.ShowModal(ctx, interaction, "File Upload Demo", "file_upload_modal", components)
+	if err != nil {
+		log.Printf("Failed to show file upload modal: %v", err)
+	}
+}
+
 func handleHelp(ctx context.Context, bot *client.Client, event *gateway.MessageCreateEvent) {
 	components := client.NewComponentBuilder().
 		AddTextDisplay("# Gophord Bot Help").
 		AddTextDisplay("Available commands:").
-		AddTextDisplay("- `!ping` - Check if the bot is responsive\n- `!hello` - Get a greeting with interactive buttons\n- `!kick <user_id>` - Kick a user from the server\n- `!webhook <name>` - Create and test a webhook\n- `!components` - See Components V2 features demo\n- `!container` - See a container with accent color\n- `!gallery` - See a media gallery and file attachment demo\n- `!section` - See a section component demo\n- `!help` - Show this help message").
+		AddTextDisplay("- `!ping` - Check if the bot is responsive\n- `!hello` - Get a greeting with interactive buttons\n- `!kick <user_id>` - Kick a user from the server\n- `!webhook <name>` - Create and test a webhook\n- `!components` - See Components V2 features demo\n- `!container` - See a container with accent color\n- `!gallery` - See a media gallery and file attachment demo\n- `!section` - See a section component demo\n- `!fileupload` - See file upload modal demo\n- `!help` - Show this help message").
 		AddSeparator(true, types.SeparatorSpacingSmall).
 		AddTextDisplay("-# Powered by gophord - A high-performance Go Discord library").
 		Build()
@@ -615,6 +668,8 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 			if err != nil {
 				log.Printf("Failed to respond to /section interaction: %v", err)
 			}
+		} else if interaction.Data.Name == "fileupload" {
+			handleFileUploadModal(ctx, bot, interaction)
 		}
 		return
 	}
@@ -666,6 +721,9 @@ func handleInteraction(ctx context.Context, bot *client.Client, interaction *typ
 	case "container_dismiss":
 		response = "Dismissed! 👍"
 		isEphemeral = true
+	case "open_file_modal":
+		handleFileUploadModal(ctx, bot, interaction)
+		return
 	default:
 		response = fmt.Sprintf("Button clicked: `%s`", customID)
 	}
