@@ -1,5 +1,4 @@
 {
-  "$schema": "https://context7.com/schema/context7.json",
   "projectTitle": "Gophord — Discord API Wrapper for Go",
   "description": "A fast, idiomatic Go library for Discord API v10+ with Components V2 support, high-performance JSON via bytedance/sonic, automatic rate limiting, and WebSocket reconnection.",
   "folders": ["docs"],
