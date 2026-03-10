@@ -4,7 +4,7 @@
   <a href="https://go.dev">
     <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/built-with/go_vector.svg" alt="Built with Go" height="48">
   </a>
-  <a href="https://pkg.go.dev/github.com/gophord/gophord">
+  <a href="https://github.com/Mvkweb/gophord">
     <img src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3.3.1/assets/cozy/documentation/website_vector.svg" alt="Documentation" height="48">
   </a>
 </p>
@@ -12,6 +12,10 @@
 <p align="center">
   A fast, idiomatic Go library for the Discord API.<br>
   Clean REST and gateway APIs, optimized JSON with <code>bytedance/sonic</code>, and full support for Discord Message Components V2.
+</p>
+
+<p align="center">
+  <em>⚠️ Work in progress. Built primarily to power <a href="https://evelith.dev">Evelith</a>.</em>
 </p>
 
 ## Why Gophord?
@@ -27,7 +31,7 @@ Gophord is built for Go projects that want a clean API surface without giving up
 ## Installation
 
 ```bash
-go get github.com/gophord/gophord
+go get github.com/Mvkweb/gophord
 ```
 
 ## Authentication
@@ -57,7 +61,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/gophord/gophord/pkg/gateway"
+	"github.com/Mvkweb/gophord/pkg/gateway"
 )
 
 func main() {
@@ -112,7 +116,7 @@ Gophord uses `bytedance/sonic` for high-throughput JSON handling, with benchmark
 
 ## Documentation
 
-API documentation is available on [pkg.go.dev](https://pkg.go.dev/github.com/gophord/gophord).
+API documentation is available on [pkg.go.dev](https://pkg.go.dev/github.com/Mvkweb/gophord).
 
 ## Contributing
 
