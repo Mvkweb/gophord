@@ -212,7 +212,7 @@ func (c *Client) Errors() <-chan error {
 	return c.errors
 }
 
-// Close closes the gateway connection.
+// Close closes the gateway connection gracefully.
 func (c *Client) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -225,8 +225,8 @@ func (c *Client) Close() error {
 	close(c.done)
 
 	if c.conn != nil {
-		// NetConn().Close() is the underlying connection
-		return c.conn.NetConn().Close()
+		// Send a graceful close frame (1000: Normal Closure)
+		return c.conn.WriteClose(1000, nil)
 	}
 
 	return nil
@@ -512,5 +512,14 @@ func (c *Client) UpdatePresence(presence *PresenceUpdate) error {
 	return c.send(GatewayPayload{
 		Op: OpcodePresenceUpdate,
 		D:  presence,
+	})
+}
+
+// SetOfflineStatus sends an offline status before closing.
+func (c *Client) SetOfflineStatus() error {
+	return c.UpdatePresence(&PresenceUpdate{
+		Status:     "offline",
+		Activities: []Activity{},
+		AFK:        false,
 	})
 }

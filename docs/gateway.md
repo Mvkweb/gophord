@@ -92,6 +92,7 @@ func setCustomStatus(gw *gateway.Client) {
         Activities: []gateway.Activity{
             {
                 Type:  4, // Custom Status
+                Name:  "Custom Status",
                 State: "evelith.dev",
             },
         },
@@ -101,7 +102,8 @@ func setCustomStatus(gw *gateway.Client) {
 ```
 
 - **Type 4** = Custom Status
-- **State** = the text displayed (e.g., "evelith.dev")
+- **Name** = Must be set to "Custom Status" for some clients to display properly.
+- **State** = The actual text displayed (e.g., "evelith.dev")
 
 ## API Reference
 
@@ -113,7 +115,7 @@ func setCustomStatus(gw *gateway.Client) {
 | `WithIntents` | `func WithIntents(intents types.IntentFlags) ClientOption` | Configures the events Discord sends over the WS connection. |
 | `WithMobileStatus` | `func WithMobileStatus(enabled bool) ClientOption` | Mimics Discord Android to get a phone status icon. |
 | `Connect` | `func (c *Client) Connect(ctx context.Context) error` | Establishes the WebSocket connection using `bytedance/gws`. |
-| `Close` | `func (c *Client) Close() error` | Closes the connection. |
+| `Close` | `func (c *Client) Close() error` | Gracefully closes the connection by sending a Close frame (Status 1000). |
 
 ### Event Channels
 
