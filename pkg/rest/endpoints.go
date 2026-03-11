@@ -526,21 +526,6 @@ func (c *Client) GetUser(ctx context.Context, userID types.Snowflake) (*types.Us
 	return &user, nil
 }
 
-// ModifyCurrentUser modifies the current user's profile settings.
-func (c *Client) ModifyCurrentUser(ctx context.Context, params *types.ModifyCurrentUserParams) (*types.User, error) {
-	data, err := c.Request(ctx, http.MethodPatch, "/users/@me", params)
-	if err != nil {
-		return nil, err
-	}
-
-	var user types.User
-	if err := json.Unmarshal(data, &user); err != nil {
-		return nil, fmt.Errorf("unmarshal user: %w", err)
-	}
-
-	return &user, nil
-}
-
 // Gateway
 
 // GetGateway returns the WebSocket URL for the gateway.

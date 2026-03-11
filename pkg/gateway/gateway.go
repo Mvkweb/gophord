@@ -93,8 +93,10 @@ type PresenceUpdate struct {
 type Activity struct {
 	// Name is the activity name.
 	Name string `json:"name"`
-	// Type is the activity type.
+	// Type is the activity type (0: Playing, 1: Streaming, 2: Listening, 3: Watching, 4: Custom Status, 5: Competing).
 	Type int `json:"type"`
+	// State is the custom status text (used with type 4 for custom status).
+	State string `json:"state,omitempty"`
 	// URL is the stream URL (for streaming activities).
 	URL string `json:"url,omitempty"`
 }

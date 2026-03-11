@@ -73,13 +73,35 @@ func updatePresence(gw *gateway.Client) {
         Activities: []gateway.Activity{
             {
                 Name: "with the Discord API",
-                Type: 0, // 0 = Playing, 1 = Streaming, 2 = Listening, 3 = Watching, 5 = Competing
+                Type: 0, // 0 = Playing, 1 = Streaming, 2 = Listening, 3 = Watching, 4 = Custom Status, 5 = Competing
             },
         },
         AFK: false,
     })
 }
 ```
+
+### Setting Custom Status
+
+Bots can now set custom status (like user custom statuses). Use activity type `4` with the `State` field:
+
+```go
+func setCustomStatus(gw *gateway.Client) {
+    gw.UpdatePresence(&gateway.PresenceUpdate{
+        Status: "online",
+        Activities: []gateway.Activity{
+            {
+                Type:  4, // Custom Status
+                State: "evelith.dev",
+            },
+        },
+        AFK: false,
+    })
+}
+```
+
+- **Type 4** = Custom Status
+- **State** = the text displayed (e.g., "evelith.dev")
 
 ## API Reference
 

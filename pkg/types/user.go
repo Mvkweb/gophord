@@ -106,13 +106,3 @@ type Emoji struct {
 	// Available indicates whether the emoji can be used.
 	Available bool `json:"available,omitempty"`
 }
-
-// ModifyCurrentUserParams contains parameters for modifying the current user (bot).
-type ModifyCurrentUserParams struct {
-	// Username is the user's username (2-32 characters, 1-32 if bots).
-	Username string `json:"username,omitempty"`
-	// Avatar is the user's avatar (base64 encoded image, max 128x128).
-	Avatar string `json:"avatar,omitempty"`
-	// Bio is the user's "about me" field (max 190 characters, bots max 190).
-	Bio string `json:"bio,omitempty"`
-}
