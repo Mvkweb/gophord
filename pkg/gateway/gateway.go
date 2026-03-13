@@ -135,7 +135,9 @@ type Client struct {
 	done         chan struct{}
 	mu           sync.RWMutex
 	closed       bool
-	mobileStatus bool
+	mobileStatus      bool
+	latency           time.Duration
+	heartbeatSendTime time.Time
 }
 
 // ClientOption is a function that configures a Client.
@@ -210,6 +212,13 @@ func (c *Client) Events() <-chan *Event {
 // Errors returns the channel for receiving errors.
 func (c *Client) Errors() <-chan error {
 	return c.errors
+}
+
+// Latency returns the heartbeat latency (RTT).
+func (c *Client) Latency() time.Duration {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.latency
 }
 
 // Close closes the gateway connection gracefully.
@@ -296,6 +305,11 @@ func (c *Client) handleMessage(data []byte) error {
 		return c.handleHello(data)
 	case OpcodeHeartbeatACK:
 		c.heartbeatACK.Store(true)
+		c.mu.Lock()
+		if !c.heartbeatSendTime.IsZero() {
+			c.latency = time.Since(c.heartbeatSendTime)
+		}
+		c.mu.Unlock()
 	}
 
 	return nil
@@ -439,6 +453,10 @@ func (c *Client) heartbeatLoop(interval time.Duration) {
 
 // sendHeartbeat sends a heartbeat payload.
 func (c *Client) sendHeartbeat() error {
+	c.mu.Lock()
+	c.heartbeatSendTime = time.Now()
+	c.mu.Unlock()
+
 	seq := c.sequence.Load()
 	var d interface{} = nil
 	if seq > 0 {
